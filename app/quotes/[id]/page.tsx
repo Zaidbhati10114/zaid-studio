@@ -74,7 +74,7 @@ export default function QuotePage({
   const quoteUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/quotes/${id}`
-      : `https://zaidstudio.dev/quotes/${id}`;
+      : `https://zaid-studio.vercel.app/quotes/${id}`;
 
   useEffect(() => {
     if (!id) return;

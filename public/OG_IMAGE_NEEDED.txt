@@ -1,0 +1,14 @@
+Create a 1200x630 og-image.png here for social sharing
+
+Requirements:
+- Dimensions: 1200x630 pixels
+- Format: PNG
+- Content: "Zaid Studio" branding with professional design
+- Style: Dark theme matching website aesthetic
+- Text: "Zaid Studio | Full Stack Development" or similar
+- Background: Dark with subtle gradients/blue accents to match site theme
+
+This image will be used for:
+- Open Graph meta tags (Facebook, LinkedIn, etc.)
+- Twitter Card meta tags
+- Social media previews when links are shared
