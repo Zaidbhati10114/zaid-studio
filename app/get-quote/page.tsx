@@ -6,6 +6,7 @@ import { ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const projectTypes = [
   { value: "Website", label: "Website", icon: "🌐" },
@@ -159,47 +160,52 @@ export default function GetQuotePage() {
               transition={{ duration: 0.4 }}
             >
               {/* Progress */}
-              <div className="mb-8 flex items-center gap-3">
-                {steps.map((s, i) => (
-                  <div key={s} className="flex flex-1 items-center gap-3">
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div
-                        className={cn(
-                          "flex size-7 items-center justify-center rounded-full border text-xs font-medium transition-colors",
-                          i < step
-                            ? "border-blue-500 bg-blue-500 text-white"
-                            : i === step
-                              ? "border-blue-500 text-blue-500"
-                              : "border-border/50 text-muted-foreground",
-                        )}
-                      >
-                        {i < step ? (
-                          <CheckCircle2 className="size-3.5" />
-                        ) : (
-                          i + 1
-                        )}
+              <div className="mb-8 flex justify-center">
+                <div className="flex items-center justify-between w-full max-w-md px-2 sm:px-0 sm:gap-6">
+                  {steps.map((s, i) => (
+                    <div
+                      key={s}
+                      className="flex flex-col items-center text-center flex-1"
+                    >
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div
+                          className={cn(
+                            "flex size-7 items-center justify-center rounded-full border text-xs font-medium transition-colors",
+                            i < step
+                              ? "border-blue-500 bg-blue-500 text-white"
+                              : i === step
+                                ? "border-blue-500 text-blue-500"
+                                : "border-border/50 text-muted-foreground",
+                          )}
+                        >
+                          {i < step ? (
+                            <CheckCircle2 className="size-3.5" />
+                          ) : (
+                            i + 1
+                          )}
+                        </div>
+                        <span
+                          className={cn(
+                            "text-[11px] whitespace-nowrap",
+                            i === step
+                              ? "text-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {s}
+                        </span>
                       </div>
-                      <span
-                        className={cn(
-                          "text-[11px] whitespace-nowrap",
-                          i === step
-                            ? "text-foreground"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {s}
-                      </span>
+                      {/* {i < steps.length - 1 && (
+                        <div
+                          className={cn(
+                            "mb-4 h-px flex-1 transition-colors",
+                            i < step ? "bg-blue-500/50" : "bg-border/40",
+                          )}
+                        />
+                      )} */}
                     </div>
-                    {i < steps.length - 1 && (
-                      <div
-                        className={cn(
-                          "mb-4 h-px flex-1 transition-colors",
-                          i < step ? "bg-blue-500/50" : "bg-border/40",
-                        )}
-                      />
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
               <div className="rounded-2xl border border-border/50 bg-card/20 p-6 sm:p-8">
@@ -370,6 +376,7 @@ export default function GetQuotePage() {
                 </div>
               </div>
 
+              {/* Badges */}
               <div className="mt-6 flex flex-wrap items-center justify-center gap-5">
                 {[
                   "Free, no commitment",
@@ -384,6 +391,19 @@ export default function GetQuotePage() {
                     {t}
                   </div>
                 ))}
+              </div>
+
+              {/* 🔥 Demo link (separate, clean) */}
+              <div className="mt-3 text-center">
+                <Link
+                  href="/quotes/af7aa9e3-f8be-4207-86f5-4247adaa1436"
+                  className="text-xs text-muted-foreground hover:text-blue-400 transition-colors"
+                >
+                  Curious what the proposal looks like?{" "}
+                  <span className="underline underline-offset-2">
+                    View a sample
+                  </span>
+                </Link>
               </div>
             </motion.div>
           )}

@@ -76,13 +76,24 @@ export default function Footer() {
 
         <Separator className="my-8 opacity-50" />
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
             © 2026 Zaid Studio. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground">
-            Built with Next.js + Supabase
-          </p>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/terms"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Terms & Conditions
+            </Link>
+            <Link
+              href="/privacy"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Privacy Policy
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
