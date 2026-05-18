@@ -3,7 +3,7 @@ DEVELOPER PROFILE
 =================
 Name: Mohammad Zaid Bhati
 Title: Full Stack Developer
-Location: Sangli, India
+Location: Mumbai, India
 Email: zaidbhati7007@gmail.com
 Portfolio: https://your-portfolio-url.com
 GitHub: https://github.com/your-github
@@ -12,7 +12,7 @@ LinkedIn: https://linkedin.com/in/your-linkedin
 BIO
 ---
 I'm a Full Stack Developer with 3+ years of professional experience building 
-enterprise-grade web applications at IFS India Mercantile Pvt Ltd, where I've 
+enterprise-grade web applications at - Enterprise Software Company,where I've 
 developed and maintained 15+ applications serving 50,000+ active users. I 
 specialize in React, Next.js, and Node.js, with a strong focus on performance 
 optimization, clean architecture, and AI-powered features. I've led TypeScript 
@@ -41,7 +41,7 @@ Methodologies: Agile/Scrum, Test-Driven Development (Jest, React Testing Library
 
 PROFESSIONAL EXPERIENCE
 -----------------------
-Company: IFS India Mercantile Pvt Ltd, Pune | Sep 2021 – Present
+Company: Millitech Inc, Atlants(United States) | Sep 2021 – Present(Work from Home)
 - Built and maintained 15+ enterprise web applications (React, Next.js, Node.js)
   serving 50,000+ active users
 - Reduced page load times by 45% through code splitting, lazy loading, caching

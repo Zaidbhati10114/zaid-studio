@@ -113,7 +113,7 @@ In the event of termination by Zaid Studio due to client misconduct, non-payment
   },
   {
     title: "12. Governing Law",
-    content: `These terms are governed by the laws of India. Any disputes arising from these terms or our services shall be subject to the jurisdiction of courts in Sangli, Maharashtra, India.
+    content: `These terms are governed by the laws of India. Any disputes arising from these terms or our services shall be subject to the jurisdiction of courts in Mumbai, Maharashtra, India.
 
 By engaging Zaid Studio for services, you agree to these terms and conditions in full.`,
   },

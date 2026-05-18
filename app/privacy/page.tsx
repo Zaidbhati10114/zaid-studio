@@ -108,7 +108,7 @@ Continued use of our website after changes constitutes acceptance of the updated
 
 Mohammad Zaid Bhati
 Zaid Studio
-Sangli, Maharashtra, India
+Mumbai, Maharashtra, India
 Email: zaidbhati7007@gmail.com
 
 We are committed to resolving any privacy concerns promptly and transparently.`,

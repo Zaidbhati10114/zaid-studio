@@ -22,27 +22,53 @@ interface FormData {
   name: string;
   email: string;
   projectType: string;
+  stage: string;
+  budget: string;
+  timeline: string;
   description: string;
 }
 
-const steps = ["Your details", "Project info", "Description"];
+const steps = [
+  "Your details",
+  "Project info",
+  "Project context",
+  "Description",
+];
 
-export default function GetQuotePage() {
+export default function GetQuotePage({
+  searchParams,
+}: {
+  searchParams: { service?: string };
+}) {
   const router = useRouter();
+  const service = searchParams.service;
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
+  const serviceMapping: Record<string, string> = {
+    website: "Website",
+    webapp: "Web App",
+    saas: "SaaS Product",
+    custom: "Other",
+  };
+
+  const prefilledProjectType = service ? serviceMapping[service] || "" : "";
   const [form, setForm] = useState<FormData>({
     name: "",
     email: "",
-    projectType: "",
+    projectType: prefilledProjectType,
+    stage: "",
+    budget: "",
+    timeline: "",
     description: "",
   });
 
   const canProceed = () => {
     if (step === 0) return form.name.trim() && form.email.trim();
     if (step === 1) return form.projectType !== "";
-    if (step === 2) return form.description.trim().length > 10;
+    if (step === 2) return form.stage !== "" && form.timeline !== "";
+    if (step === 3) return form.description.trim().length > 10;
     return false;
   };
 
@@ -62,6 +88,7 @@ export default function GetQuotePage() {
       });
       const data = await res.json();
       if (data.success) {
+        console.log(data);
         router.push(`/quotes/${data.quoteId}`);
       } else {
         setError(data.error || "Failed to generate quote. Please try again.");
@@ -97,6 +124,14 @@ export default function GetQuotePage() {
               Answer 3 quick questions and get a detailed proposal with
               timeline, deliverables, tech stack and more — in under 30 seconds.
             </p>
+            <div className="mt-5 inline-flex items-start gap-2 rounded-xl border border-blue-500/15 bg-blue-500/5 px-4 py-3 text-left">
+              <Sparkles className="mt-0.5 size-4 shrink-0 text-blue-400" />
+              <p className="text-sm leading-relaxed text-foreground/75">
+                This proposal combines AI with my real-world development
+                experience building production-grade applications — giving you a
+                more practical and tailored project estimate.
+              </p>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -302,9 +337,117 @@ export default function GetQuotePage() {
                       </div>
                     </motion.div>
                   )}
-
-                  {/* Step 2 — Description */}
+                  {/* Step 2 — Project Context */}
                   {step === 2 && (
+                    <motion.div
+                      key="step2"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex flex-col gap-5"
+                    >
+                      <div>
+                        <h2 className="text-lg font-medium">
+                          Tell me a bit more
+                        </h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          This helps me tailor your proposal better.
+                        </p>
+                      </div>
+
+                      {/* Stage */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium">
+                          Current stage
+                        </label>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {[
+                            "Starting from scratch",
+                            "I have a basic website",
+                            "Need redesign",
+                            "Need advanced features",
+                          ].map((option) => (
+                            <button
+                              key={option}
+                              onClick={() =>
+                                setForm({ ...form, stage: option })
+                              }
+                              className={cn(
+                                "rounded-xl border p-3 text-left text-sm transition",
+                                form.stage === option
+                                  ? "border-blue-500 bg-blue-500/10"
+                                  : "border-border/50 hover:border-border",
+                              )}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Budget */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium">
+                          Budget (optional)
+                        </label>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {[
+                            "Under ₹50k",
+                            "₹50k – ₹1L",
+                            "₹1L – ₹3L",
+                            "₹3L+",
+                            "Not sure",
+                          ].map((option) => (
+                            <button
+                              key={option}
+                              onClick={() =>
+                                setForm({ ...form, budget: option })
+                              }
+                              className={cn(
+                                "rounded-xl border p-3 text-left text-sm transition",
+                                form.budget === option
+                                  ? "border-blue-500 bg-blue-500/10"
+                                  : "border-border/50 hover:border-border",
+                              )}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Timeline */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium">
+                          When do you need this?
+                        </label>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {["ASAP", "2–4 weeks", "1–2 months", "Flexible"].map(
+                            (option) => (
+                              <button
+                                key={option}
+                                onClick={() =>
+                                  setForm({ ...form, timeline: option })
+                                }
+                                className={cn(
+                                  "rounded-xl border p-3 text-left text-sm transition",
+                                  form.timeline === option
+                                    ? "border-blue-500 bg-blue-500/10"
+                                    : "border-border/50 hover:border-border",
+                                )}
+                              >
+                                {option}
+                              </button>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 3 — Description */}
+                  {step === 3 && (
                     <motion.div
                       key="step2"
                       initial={{ opacity: 0, x: 20 }}
@@ -396,7 +539,7 @@ export default function GetQuotePage() {
               {/* 🔥 Demo link (separate, clean) */}
               <div className="mt-3 text-center">
                 <Link
-                  href="/quotes/af7aa9e3-f8be-4207-86f5-4247adaa1436"
+                  href="/get-quote/sample"
                   className="text-xs text-muted-foreground hover:text-blue-400 transition-colors"
                 >
                   Curious what the proposal looks like?{" "}

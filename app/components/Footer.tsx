@@ -12,29 +12,31 @@ const links = [
 export default function Footer() {
   return (
     <footer className="border-t border-border/50 bg-background">
-      <div className="mx-auto max-w-6xl px-6 py-12">
+      <div className="mx-auto max-w-6xl px-6 py-10 sm:py-12">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           {/* Brand */}
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 font-semibold text-sm">
+            <div className="flex items-center gap-2 text-sm font-semibold">
               Zaid Studio
               <span className="size-1.5 rounded-full bg-blue-500" />
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">
+
+            <p className="max-w-[240px] text-sm leading-relaxed text-muted-foreground">
               Building digital products for ambitious startups and businesses.
             </p>
           </div>
 
-          {/* Nav */}
-          <div className="flex flex-col gap-3">
+          {/* Navigation */}
+          <div className="flex flex-col gap-2 md:gap-3">
             <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
               Navigation
             </p>
+
             {links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
+                className="w-fit text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 {l.label}
               </Link>
@@ -42,31 +44,34 @@ export default function Footer() {
           </div>
 
           {/* Connect */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 md:gap-3">
             <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
               Connect
             </p>
+
             <a
               href="mailto:zaidbhati7007@gmail.com"
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
+              className="flex w-fit items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <Mail className="size-3.5" />
-              zaidbhati7007@gmail.com
+              <span>zaidbhati7007@gmail.com</span>
             </a>
-            <div className="flex items-center gap-3">
+
+            <div className="flex items-center gap-3 pt-1">
               <a
                 href="https://github.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex size-8 items-center justify-center rounded-md border border-border/50 text-muted-foreground hover:text-foreground transition-colors"
+                className="flex size-8 items-center justify-center rounded-md border border-border/50 text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Github className="size-3.5" />
               </a>
+
               <a
                 href="https://linkedin.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex size-8 items-center justify-center rounded-md border border-border/50 text-muted-foreground hover:text-foreground transition-colors"
+                className="flex size-8 items-center justify-center rounded-md border border-border/50 text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Linkedin className="size-3.5" />
               </a>
@@ -76,20 +81,23 @@ export default function Footer() {
 
         <Separator className="my-8 opacity-50" />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Bottom */}
+        <div className="flex flex-col gap-4 border-t border-border/40 pt-6 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <p className="text-xs text-muted-foreground">
             © 2026 Zaid Studio. All rights reserved.
           </p>
-          <div className="flex items-center gap-4">
+
+          <div className="flex items-center justify-center gap-4 sm:justify-start">
             <Link
               href="/terms"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               Terms & Conditions
             </Link>
+
             <Link
               href="/privacy"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               Privacy Policy
             </Link>

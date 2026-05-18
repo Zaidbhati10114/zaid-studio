@@ -51,7 +51,7 @@ const timeline = [
   },
   {
     year: "2021–Present",
-    title: "Full Stack Developer @ IFS India",
+    title: "Full Stack Developer - Enterprise Software",
     desc: "Built and maintained 15+ enterprise applications serving 50,000+ users. Led TypeScript migration, architected microservices handling 100K+ daily API requests.",
   },
   {
@@ -115,7 +115,7 @@ export default function AboutPage() {
               <div className="mt-6 flex flex-wrap gap-4">
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <MapPin className="size-3.5" />
-                  Sangli, India · Open to remote
+                  Mumbai, India · Open to remote
                 </div>
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Mail className="size-3.5" />
@@ -163,11 +163,11 @@ export default function AboutPage() {
           </div>
           <div className="flex flex-col gap-4 text-sm text-muted-foreground leading-relaxed">
             <p>
-              After 3+ years building enterprise applications at IFS India —
-              serving 50,000+ users, architecting APIs handling 100K+ daily
-              requests, and leading TypeScript migrations — I realized I wanted
-              to apply that same production-grade thinking to smaller, faster
-              projects.
+              After 3+ years building enterprise applications at Software
+              Company — serving 50,000+ users, architecting APIs handling 100K+
+              daily requests, and leading TypeScript migrations — I realized I
+              wanted to apply that same production-grade thinking to smaller,
+              faster projects.
             </p>
             <p>
               I started building my own products on the side. Seven of them

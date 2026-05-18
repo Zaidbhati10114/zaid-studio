@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, CalendarDays } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  CalendarDays,
+  Zap,
+  MapPin,
+  Clock,
+  Briefcase,
+  ExternalLink,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import FaqSection from "./components/FaqSection";
@@ -11,15 +20,18 @@ const CAL_LINK = "https://cal.com/zaidbhati07/30min";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
   transition: { duration: 0.5, delay, ease: "easeOut" as const },
 });
+
 const services = [
   {
     tag: "Starter",
+    slug: "website",
     name: "Landing Page",
     desc: "Perfect for personal brand or small business online presence.",
-    price: "₹25,000",
+    price: "Starting at ₹5,000",
     timeline: "3–7 days",
     features: [
       "Responsive design",
@@ -31,9 +43,10 @@ const services = [
   },
   {
     tag: "Business",
+    slug: "webapp",
     name: "Full Stack Web App",
-    desc: "End-to-end web application with auth, database, and deployment.",
-    price: "₹75,000",
+    desc: "Custom business platforms, dashboards, and booking systems tailored to your workflow.",
+    price: "Starting at ₹25,000",
     timeline: "2–4 weeks",
     features: [
       "Auth + database",
@@ -45,15 +58,30 @@ const services = [
   },
   {
     tag: "Growth",
+    slug: "saas",
     name: "SaaS Product",
-    desc: "Full SaaS with payments, dashboard, and scalable architecture.",
-    price: "₹1,50,000",
+    desc: "MVP-focused SaaS products with subscriptions, dashboards, and future-ready architecture.",
+    price: "Starting at ₹50,000",
     timeline: "4–8 weeks",
     features: [
       "Stripe/Razorpay billing",
       "4–8 week delivery",
-      "Unlimited revisions",
-      "Post-launch support",
+      "Post-launch improvement support",
+    ],
+    featured: false,
+  },
+  {
+    tag: "Custom",
+    slug: "custom",
+    name: "Custom Product",
+    desc: "Need something more advanced? SaaS platforms, AI tools, marketplaces, and fully custom workflows scoped around your exact idea.",
+    price: "Custom pricing",
+    timeline: "Depends on scope",
+    features: [
+      "Custom feature planning",
+      "Scalable architecture",
+      "Advanced integrations",
+      "Collaborative project scoping",
     ],
     featured: false,
   },
@@ -127,73 +155,298 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center overflow-hidden px-6 pt-20 pb-16 text-center">
+      <section className="relative flex min-h-[calc(100vh-3.5rem)] flex-col justify-center overflow-hidden px-6 pt-20 pb-16">
+        {/* Background */}
         <div className="dot-grid absolute inset-0 -z-20" />
-        <div className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[100px]" />
+        <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute left-1/2 top-0 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl dark:bg-blue-500/20" />
+          <div className="absolute left-[-120px] top-[30%] h-[320px] w-[320px] rounded-full bg-indigo-500/5 blur-3xl dark:bg-indigo-500/10" />
+          <div className="absolute right-[-100px] top-[20%] h-[300px] w-[300px] rounded-full bg-cyan-500/5 blur-3xl dark:bg-cyan-500/10" />
+        </div>
 
-        <motion.div {...fadeUp(0)} className="mb-6">
-          <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/8 px-3 py-1 text-xs text-blue-400">
-            <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#4ade80]" />
-            Available for new projects
-          </span>
-        </motion.div>
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-16">
+            {/* ── LEFT ── */}
+            <div className="flex flex-col items-start lg:flex-1">
+              {/* Badge */}
+              <motion.div {...fadeUp(0)} className="mb-5">
+                <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/8 px-3 py-1 text-xs text-blue-500 dark:text-blue-400">
+                  <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#4ade80]" />
+                  Available for new projects
+                </span>
+              </motion.div>
 
-        <motion.h1
-          {...fadeUp(0.08)}
-          className="max-w-3xl text-5xl font-semibold leading-[1.05] tracking-[-2px] sm:text-6xl lg:text-7xl"
-        >
-          We Build Digital{" "}
-          <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
-            Products That Scale
-          </span>
-        </motion.h1>
+              {/* H1 */}
+              <motion.h1
+                {...fadeUp(0.08)}
+                className="max-w-xl text-4xl font-semibold leading-[1.05] tracking-[-1.5px] sm:text-5xl lg:text-6xl"
+              >
+                Custom Websites &{" "}
+                <span className="bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">
+                  Digital Products
+                </span>
+              </motion.h1>
 
-        <motion.p
-          {...fadeUp(0.15)}
-          className="mt-5 max-w-xl text-base text-muted-foreground leading-relaxed"
-        >
-          Zaid Studio is a solo dev studio specializing in fast, scalable web
-          apps, SaaS products, and AI-powered tools for startups and ambitious
-          businesses.
-        </motion.p>
+              {/* Subtitle */}
+              <motion.p
+                {...fadeUp(0.13)}
+                className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base"
+              >
+                Solo dev studio for startups and businesses. Fast, scalable, and
+                built to last.
+              </motion.p>
 
-        <motion.div
-          {...fadeUp(0.22)}
-          className="mt-8 flex flex-wrap items-center justify-center gap-3"
-        >
-          <Link
-            href="/get-quote"
-            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] transition-all"
-          >
-            Get a Free Quote <ArrowRight className="size-3.5" />
-          </Link>
-          <Link
-            href="/work"
-            className="inline-flex items-center gap-2 rounded-xl border border-border/60 px-5 py-2.5 text-sm font-medium text-foreground hover:bg-secondary/50 transition-colors"
-          >
-            View Our Work
-          </Link>
-        </motion.div>
+              {/* CTAs */}
+              <motion.div
+                {...fadeUp(0.18)}
+                className="mt-7 flex w-full flex-col gap-3 sm:flex-row sm:items-center"
+              >
+                <Link
+                  href="/get-quote"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-all hover:bg-blue-700 hover:shadow-[0_0_24px_rgba(37,99,235,0.4)] sm:py-2.5"
+                >
+                  <Zap className="size-3.5" />
+                  Get your proposal in 30 sec
+                </Link>
+                <Link
+                  href="/work"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/60 px-5 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary/50 sm:py-2.5"
+                >
+                  View our work
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </motion.div>
 
-        <motion.div
-          {...fadeUp(0.3)}
-          className="mt-14 flex items-center divide-x divide-border/50"
-        >
-          {stats.map((s) => (
-            <div
-              key={s.num}
-              className="px-6 text-center first:pl-0 last:pr-0 sm:px-8"
+              {/* Microcopy */}
+              <motion.p
+                {...fadeUp(0.22)}
+                className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"
+              >
+                <span className="flex size-3.5 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
+                  <Check className="size-2.5" />
+                </span>
+                AI-generated. Based on your idea. No calls needed.
+              </motion.p>
+
+              {/* Stats */}
+              <motion.div
+                {...fadeUp(0.27)}
+                className="mt-10 flex items-center divide-x divide-border/50"
+              >
+                {stats.map((s) => (
+                  <div
+                    key={s.num}
+                    className="pr-6 first:pl-0 last:pr-0 sm:pr-8 [&:not(:first-child)]:pl-6 [&:not(:first-child)]:sm:pl-8"
+                  >
+                    <div className="text-xl font-semibold tracking-tight sm:text-2xl">
+                      {s.num}
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      {s.label}
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* ── RIGHT — Studio card ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.35, ease: "easeOut" }}
+              className="w-full lg:w-[360px] lg:flex-shrink-0"
             >
-              <div className="text-2xl font-semibold tracking-tight">
-                {s.num}
+              <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/60 shadow-sm backdrop-blur-sm">
+                {/* Avatar + name + badge */}
+                <div className="border-b border-border/50 p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-base font-semibold text-white shadow-lg">
+                      Z
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground">
+                        Mohammad Zaid
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Full Stack Developer
+                      </p>
+                    </div>
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                      <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_#4ade80]" />
+                      Open to work
+                    </span>
+                  </div>
+                  <p className="mt-3.5 text-xs leading-relaxed text-muted-foreground">
+                    Building fast, production-ready web apps and SaaS products —
+                    from design to deployment, solo, focused, and reliable.
+                  </p>
+                </div>
+
+                {/* Info rows */}
+                <div className="flex flex-col gap-3 border-b border-border/50 px-5 py-4">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="size-3.5 shrink-0 text-muted-foreground/50" />
+                    <span className="w-24 shrink-0 text-xs text-muted-foreground">
+                      Based in
+                    </span>
+                    <span className="text-xs text-foreground">
+                      India (IST, UTC+5:30)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="size-3.5 shrink-0 text-muted-foreground/50" />
+                    <span className="w-24 shrink-0 text-xs text-muted-foreground">
+                      Response time
+                    </span>
+                    <span className="text-xs text-foreground">
+                      Within 24 hours
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Briefcase className="size-3.5 shrink-0 text-muted-foreground/50" />
+                    <span className="w-24 shrink-0 text-xs text-muted-foreground">
+                      Availability
+                    </span>
+                    <span className="text-xs text-foreground">
+                      Full-time projects
+                    </span>
+                  </div>
+                </div>
+
+                {/* What I build */}
+                <div className="border-b border-border/50 px-5 py-4">
+                  <p className="mb-3 text-[11px] font-medium uppercase tracking-widest text-muted-foreground/50">
+                    What I build
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      "Landing Pages",
+                      "Web Apps",
+                      "SaaS Products",
+                      "AI Tools",
+                    ].map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-lg border border-border/60 bg-secondary/40 px-2.5 py-1 text-xs text-foreground"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Trust signals */}
+                <div className="border-b border-border/50 px-5 py-4">
+                  <p className="mb-3 text-[11px] font-medium uppercase tracking-widest text-muted-foreground/50">
+                    Why clients trust me
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                    {[
+                      "100% project completion",
+                      "30-day post-launch support",
+                      "NDA available",
+                      "Free discovery call",
+                    ].map((item) => (
+                      <div key={item} className="flex items-start gap-1.5">
+                        <Check className="mt-0.5 size-3 shrink-0 text-blue-500" />
+                        <span className="text-xs leading-relaxed text-muted-foreground">
+                          {item}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Book a call */}
+                <div className="px-5 py-4">
+                  <a
+                    href={CAL_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/25 bg-blue-500/8 px-4 py-2.5 text-sm font-medium text-blue-600 transition-all hover:bg-blue-500/12 dark:text-blue-400"
+                  >
+                    <CalendarDays className="size-3.5" />
+                    Book a free 30-min call
+                  </a>
+                </div>
               </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                {s.label}
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      <Separator className="opacity-30" />
+
+      {/* ── CLINIC CARD ──────────────────────────────────────── */}
+      <div className="mx-auto w-full max-w-6xl px-6 py-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+        >
+          {/* Label */}
+          <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground/50">
+            Personal project · actively maintained
+          </p>
+
+          {/* Card */}
+          <div className="overflow-hidden rounded-xl border border-border/50 bg-card/30">
+            <div className="flex items-stretch">
+              {/* Green accent bar */}
+              <div className="w-[3px] shrink-0 bg-gradient-to-b from-emerald-500 to-emerald-400" />
+
+              {/* Content */}
+              <div className="flex flex-1 flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:gap-8">
+                {/* Left: name + desc */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="text-base font-semibold text-foreground">
+                      🏥 Ashabi Clinic — Sangli
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/8 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                      <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_#4ade80]" />
+                      Recently launched
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    Built & maintain the full digital presence — appointment
+                    booking, cancellation, WhatsApp flow, and admin dashboard.
+                  </p>
+                  {/* Feature pills */}
+                  <div className="mt-2.5 flex flex-wrap gap-2">
+                    {[
+                      "Appointment booking",
+                      "Cancellation system",
+                      "WhatsApp integration",
+                      "Admin dashboard",
+                    ].map((f) => (
+                      <span
+                        key={f}
+                        className="rounded-md border border-border/50 bg-secondary/30 px-2.5 py-1 text-xs text-muted-foreground"
+                      >
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right: visit link */}
+                <a
+                  href="https://ashabi-clinic.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex shrink-0 items-center gap-2 self-start rounded-lg border border-emerald-500/20 bg-emerald-500/6 px-4 py-2 text-sm font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10 dark:text-emerald-400 sm:self-auto"
+                >
+                  Visit site
+                  <ExternalLink className="size-3.5" />
+                </a>
               </div>
             </div>
-          ))}
+          </div>
         </motion.div>
-      </section>
+      </div>
 
       <Separator className="opacity-30" />
 
@@ -213,12 +466,12 @@ export default function HomePage() {
               Simple, transparent pricing
             </h2>
             <p className="text-sm text-muted-foreground">
-              Fixed-price packages. No hourly rates, no surprises.
+              Transparent starter pricing tailored to your project scope.
             </p>
           </div>
         </motion.div>
 
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
+        <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {services.map((s, i) => (
             <motion.div
               key={s.name}
@@ -227,7 +480,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.08 }}
               className={cn(
-                "relative flex flex-col rounded-2xl border p-6 transition-colors",
+                "relative grid grid-rows-[auto_auto_auto_1fr_auto] rounded-2xl border p-6 transition-colors gap-0",
                 s.featured
                   ? "border-blue-500/30 bg-blue-500/4"
                   : "border-border/50 bg-card/30 hover:border-border",
@@ -238,36 +491,46 @@ export default function HomePage() {
                   Most popular
                 </span>
               )}
-              <p className="mb-3 text-xs font-medium uppercase tracking-widest text-blue-500">
-                {s.tag}
-              </p>
-              <h3 className="text-lg font-semibold">{s.name}</h3>
+              <div>
+                <p className="mb-3 text-xs font-medium uppercase tracking-widest text-blue-500">
+                  {s.tag}
+                </p>
+                <h3 className="text-lg font-semibold">{s.name}</h3>
+              </div>
               <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
                 {s.desc}
               </p>
               <div className="my-5">
-                <span className="text-3xl font-semibold tracking-tight">
+                <span
+                  className={cn(
+                    "font-semibold tracking-tight",
+                    s.price === "Custom pricing" ? "text-xl" : "text-3xl",
+                  )}
+                >
                   {s.price}
                 </span>
-                <span className="ml-1 text-sm text-muted-foreground">
-                  / project
-                </span>
+                {s.price !== "Custom pricing" && (
+                  <span className="ml-1 text-sm text-muted-foreground">
+                    / project
+                  </span>
+                )}
               </div>
-              <ul className="mb-6 flex flex-col gap-2.5">
+              <ul className="flex flex-col gap-2.5">
                 {s.features.map((f) => (
                   <li
                     key={f}
-                    className="flex items-center gap-2 text-sm text-muted-foreground"
+                    className="flex items-start gap-2 text-sm text-muted-foreground"
                   >
-                    <Check className="size-3.5 shrink-0 text-blue-500" />
+                    <Check className="mt-0.5 size-3.5 shrink-0 text-blue-500" />
                     {f}
                   </li>
                 ))}
               </ul>
+              <div className="flex-1" />
               <Link
-                href="/get-quote"
+                href={`/get-quote?service=${s.slug}`}
                 className={cn(
-                  "mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
+                  "mt-6 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
                   s.featured
                     ? "bg-blue-600 text-white hover:bg-blue-700"
                     : "border border-border/60 text-foreground hover:bg-secondary/50",

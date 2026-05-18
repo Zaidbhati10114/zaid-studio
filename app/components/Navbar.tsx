@@ -19,6 +19,11 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false); // ← fix
+
+  useEffect(() => {
+    setMounted(true); // ← fix
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -32,12 +37,15 @@ export default function Navbar() {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
           ? "border-b border-border/50 bg-background/80 backdrop-blur-xl"
-          : "bg-transparent"
+          : "bg-transparent",
       )}
     >
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-semibold text-sm tracking-tight">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-semibold text-sm tracking-tight"
+        >
           Zaid Studio
           <span className="size-1.5 rounded-full bg-blue-500" />
         </Link>
@@ -52,7 +60,7 @@ export default function Navbar() {
                 "text-sm transition-colors",
                 pathname === l.href
                   ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {l.label}
@@ -66,7 +74,15 @@ export default function Navbar() {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="flex size-8 items-center justify-center rounded-md border border-border/50 text-muted-foreground hover:text-foreground transition-colors"
           >
-            {theme === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+            {mounted ? (
+              theme === "dark" ? (
+                <Sun className="size-3.5" />
+              ) : (
+                <Moon className="size-3.5" />
+              )
+            ) : (
+              <span className="size-3.5" />
+            )}
           </button>
           <Link
             href="/get-quote"
@@ -95,7 +111,9 @@ export default function Navbar() {
               onClick={() => setOpen(false)}
               className={cn(
                 "text-sm",
-                pathname === l.href ? "text-foreground" : "text-muted-foreground"
+                pathname === l.href
+                  ? "text-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {l.label}
