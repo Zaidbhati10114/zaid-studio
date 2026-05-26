@@ -116,7 +116,7 @@ Timeline Expectation: ${body.timeline}
 }
 
 async function callGemini(prompt: string): Promise<GeneratedQuote> {
-  const model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
   const result = await model.generateContent(prompt);
   const text = result.response.text();
 
