@@ -13,8 +13,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import FaqSection from "@/app/components/FaqSection";
 import { cn } from "@/lib/utils";
-import FaqSection from "./components/FaqSection";
 
 const CAL_LINK = "https://cal.com/zaidbhati07/30min";
 
@@ -66,6 +66,7 @@ const services = [
     features: [
       "Stripe/Razorpay billing",
       "4–8 week delivery",
+      "Scalable architecture",
       "Post-launch improvement support",
     ],
     featured: false,
@@ -86,7 +87,6 @@ const services = [
     featured: false,
   },
 ];
-
 const projects = [
   {
     name: "AI JSON Generator",
@@ -105,12 +105,12 @@ const projects = [
     icon: "🎨",
   },
   {
-    name: "Watch Tower",
-    desc: "SaaS notification system for real-time Discord alerts on critical business events.",
-    tags: ["Next.js", "Discord", "SaaS"],
-    href: "https://www.watchtowerapp.shop",
-    color: "from-emerald-500/10 to-teal-500/5",
-    icon: "🔔",
+    name: "Twitter Craft",
+    desc: "An AI-powered Twitter bio generator that creates engaging, personalized bios based on user prompts using the Gemini API. Built for speed — generate a compelling bio in seconds.",
+    tags: ["Next.js", "Gemini", "AI"],
+    href: "https://twitter-craft.vercel.app",
+    color: "from-sky-500/10 to-blue-500/5",
+    icon: "✍️",
   },
   {
     name: "Price-Pair",
@@ -148,7 +148,7 @@ const steps = [
 const stats = [
   { num: "3+", label: "Years Experience" },
   { num: "15+", label: "Projects Delivered" },
-  { num: "50K+", label: "Users Served" },
+  { num: "100%", label: "Client Satisfaction" },
 ];
 
 export default function HomePage() {
@@ -452,12 +452,8 @@ export default function HomePage() {
 
       {/* ── SERVICES ─────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-6xl px-6 py-24">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        {/* Header */}
+        <motion.div {...fadeUp(0)} className="mb-12">
           <p className="mb-3 text-xs font-medium uppercase tracking-widest text-blue-500">
             Services
           </p>
@@ -471,51 +467,63 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {/* Grid */}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {services.map((s, i) => (
             <motion.div
-              key={s.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
+              key={s.slug}
+              {...fadeUp(i * 0.08)}
               className={cn(
-                "relative grid grid-rows-[auto_auto_auto_1fr_auto] rounded-2xl border p-6 transition-colors gap-0",
+                "relative flex flex-col rounded-2xl border p-6 transition-colors",
                 s.featured
-                  ? "border-blue-500/30 bg-blue-500/4"
-                  : "border-border/50 bg-card/30 hover:border-border",
+                  ? "border-blue-500/30 bg-blue-500/[0.04]"
+                  : "border-border/50 bg-card/30 hover:border-border/80",
               )}
             >
+              {/* Most popular badge */}
               {s.featured && (
                 <span className="absolute right-4 top-4 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[11px] text-blue-400">
                   Most popular
                 </span>
               )}
-              <div>
-                <p className="mb-3 text-xs font-medium uppercase tracking-widest text-blue-500">
-                  {s.tag}
-                </p>
-                <h3 className="text-lg font-semibold">{s.name}</h3>
-              </div>
-              <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+
+              {/* Tag */}
+              <p className="mb-2.5 text-xs font-medium uppercase tracking-widest text-blue-500">
+                {s.tag}
+              </p>
+
+              {/* Name */}
+              <h3 className="text-lg font-semibold leading-snug">{s.name}</h3>
+
+              {/* Description */}
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {s.desc}
               </p>
-              <div className="my-5">
-                <span
+
+              {/* Price block — fixed min-height keeps all cards aligned */}
+              <div className="my-6 flex min-h-[76px] flex-col justify-center border-y border-border/40 py-4">
+                {s.price !== "Custom pricing" && (
+                  <p className="mb-0.5 text-[11px] uppercase tracking-wider text-muted-foreground/60">
+                    Starting at
+                  </p>
+                )}
+                <p
                   className={cn(
-                    "font-semibold tracking-tight",
-                    s.price === "Custom pricing" ? "text-xl" : "text-3xl",
+                    "font-semibold leading-none tracking-tight",
+                    s.price === "Custom pricing" ? "text-2xl" : "text-3xl",
                   )}
                 >
                   {s.price}
-                </span>
-                {s.price !== "Custom pricing" && (
-                  <span className="ml-1 text-sm text-muted-foreground">
-                    / project
-                  </span>
-                )}
+                </p>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {s.price !== "Custom pricing"
+                    ? `/ project · ${s.timeline}`
+                    : "Scoped around your idea"}
+                </p>
               </div>
-              <ul className="flex flex-col gap-2.5">
+
+              {/* Features — flex-1 pushes CTA to bottom */}
+              <ul className="flex flex-1 flex-col gap-2.5">
                 {s.features.map((f) => (
                   <li
                     key={f}
@@ -526,9 +534,14 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <div className="flex-1" />
+
+              {/* CTA — always pinned to bottom */}
               <Link
-                href={`/get-quote?service=${s.slug}`}
+                href={
+                  s.slug === "custom"
+                    ? "/contact"
+                    : `/get-quote?service=${s.slug}`
+                }
                 className={cn(
                   "mt-6 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
                   s.featured
@@ -536,11 +549,33 @@ export default function HomePage() {
                     : "border border-border/60 text-foreground hover:bg-secondary/50",
                 )}
               >
-                Get started <ArrowRight className="size-3.5" />
+                {s.slug === "custom" ? "Let's Talk" : "Get Started"}
+                <ArrowRight className="size-3.5" />
               </Link>
             </motion.div>
           ))}
         </div>
+
+        {/* Bottom escape hatch */}
+        <motion.p
+          {...fadeUp(0.38)}
+          className="mt-8 text-center text-xs text-muted-foreground"
+        >
+          Not sure which fits?{" "}
+          <Link
+            href="/contact"
+            className="text-blue-500 underline-offset-2 hover:underline"
+          >
+            Send a message
+          </Link>{" "}
+          or{" "}
+          <Link
+            href="/get-quote"
+            className="text-blue-500 underline-offset-2 hover:underline"
+          >
+            get an AI proposal in 30 sec →
+          </Link>
+        </motion.p>
       </section>
 
       <Separator className="opacity-30" />

@@ -3,13 +3,17 @@ import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "next-themes";
 
 import "./globals.css";
-import PortfolioShell from "./components/PorfolioShell";
+import { QueryProvider } from "./providers/QueryProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://zaid-studio.vercel.app"),
   title: {
     default: "Zaid Studio | Full Stack Development",
     template: "%s | Zaid Studio",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   description:
     "Zaid Studio builds fast, scalable web apps, SaaS products, and AI-powered tools for startups and businesses. Get an AI-powered project proposal in 30 seconds.",
@@ -90,7 +94,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <PortfolioShell>{children}</PortfolioShell>
+          <QueryProvider>{children}</QueryProvider>
         </ThemeProvider>
       </body>
     </html>

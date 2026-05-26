@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useLockHorizontalScroll } from "@/hooks/useLockHorizontalScroll";
+import { useGenerateQuote, type QuoteFormData } from "@/hooks/useQuote";
 
 const projectTypes = [
   { value: "Website", label: "Website", icon: "🌐" },
@@ -18,16 +20,6 @@ const projectTypes = [
   { value: "Other", label: "Other", icon: "💡" },
 ];
 
-interface FormData {
-  name: string;
-  email: string;
-  projectType: string;
-  stage: string;
-  budget: string;
-  timeline: string;
-  description: string;
-}
-
 const steps = [
   "Your details",
   "Project info",
@@ -35,26 +27,47 @@ const steps = [
   "Description",
 ];
 
+const GENERATION_STEPS = [
+  "Analyzing project requirements",
+  "Recommending tech stack",
+  "Building phase timeline",
+  "Calculating estimate",
+];
+
+// Maps URL ?service= param → projectType value
+const SERVICE_MAP: Record<string, string> = {
+  website: "Website",
+  webapp: "Web App",
+  saas: "SaaS Product",
+  custom: "Other",
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function GetQuotePage({
   searchParams,
 }: {
-  searchParams: { service?: string };
+  searchParams: Promise<{ service?: string }>;
 }) {
+  useLockHorizontalScroll();
+
   const router = useRouter();
-  const service = searchParams.service;
+  const { service } = use(searchParams);
+
+  const prefilledProjectType = service ? (SERVICE_MAP[service] ?? "") : "";
+
   const [step, setStep] = useState(0);
-  const [loading, setLoading] = useState(false);
 
-  const [error, setError] = useState<string | null>(null);
-  const serviceMapping: Record<string, string> = {
-    website: "Website",
-    webapp: "Web App",
-    saas: "SaaS Product",
-    custom: "Other",
-  };
+  const formRef = useRef<HTMLDivElement>(null);
 
-  const prefilledProjectType = service ? serviceMapping[service] || "" : "";
-  const [form, setForm] = useState<FormData>({
+  useEffect(() => {
+    if (step === 0) return; // don't scroll on initial load
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [step]);
+  // Latched to true on success — prevents the form flashing back while
+  // the router is still navigating to /quotes/[id]
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState<QuoteFormData>({
     name: "",
     email: "",
     projectType: prefilledProjectType,
@@ -64,47 +77,57 @@ export default function GetQuotePage({
     description: "",
   });
 
-  const canProceed = () => {
-    if (step === 0) return form.name.trim() && form.email.trim();
-    if (step === 1) return form.projectType !== "";
-    if (step === 2) return form.stage !== "" && form.timeline !== "";
-    if (step === 3) return form.description.trim().length > 10;
-    return false;
-  };
+  // ── React Query mutation ───────────────────────────────────────────────────
+  const {
+    mutate: generateQuote,
+    isPending,
+    isError,
+    error,
+    reset: resetMutation,
+  } = useGenerateQuote({
+    onSuccess: ({ quoteId }) => {
+      setSubmitted(true);
+      router.push(`/quotes/${quoteId}`);
+    },
+  });
 
-  const handleNext = () => {
-    if (step < steps.length - 1) setStep((s) => s + 1);
-    else handleSubmit();
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/generate-quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (data.success) {
-        console.log(data);
-        router.push(`/quotes/${data.quoteId}`);
-      } else {
-        setError(data.error || "Failed to generate quote. Please try again.");
-        setLoading(false);
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-      setLoading(false);
+  // ── Step validation ────────────────────────────────────────────────────────
+  const canProceed = (): boolean => {
+    switch (step) {
+      case 0:
+        return !!(form.name.trim() && form.email.trim());
+      case 1:
+        return !!form.projectType;
+      case 2:
+        return !!(form.stage && form.timeline);
+      case 3:
+        return form.description.trim().length > 10;
+      default:
+        return false;
     }
   };
 
+  const handleNext = () => {
+    if (step < steps.length - 1) {
+      setStep((s) => s + 1);
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      generateQuote(form);
+    }
+  };
+
+  // Clear mutation error when user starts editing again
+  const handleFieldChange = (patch: Partial<QuoteFormData>) => {
+    if (isError) resetMutation();
+    setForm((prev) => ({ ...prev, ...patch }));
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col">
-      {/* ── HEADER ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden px-6 pb-10 pt-28">
-        <div className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-blue-600/8 blur-[80px]" />
+    <div className="flex flex-col relative overflow-x-hidden">
+      {/* HEADER */}
+      <section className="relative px-6 pb-10 pt-28">
+        <div className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-[400px] w-[min(600px,100vw)] -translate-x-1/2 rounded-full bg-blue-600/8 blur-[80px]" />
         <div className="mx-auto max-w-2xl text-center">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -132,17 +155,28 @@ export default function GetQuotePage({
                 more practical and tailored project estimate.
               </p>
             </div>
+            <div className="mt-5 rounded-xl border border-border/50 bg-card/20 px-4 py-3 text-sm">
+              <p className="text-muted-foreground">
+                Not ready for a proposal yet?{" "}
+                <Link
+                  href="/contact"
+                  className="font-medium text-blue-500 hover:text-blue-400"
+                >
+                  Book a discovery call or send a message →
+                </Link>
+              </p>
+            </div>
           </motion.div>
         </div>
       </section>
 
       <Separator className="opacity-30" />
 
-      {/* ── FORM ───────────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-2xl px-6 py-12">
+      {/* FORM */}
+      <section ref={formRef} className="mx-auto w-full max-w-2xl px-6 py-12">
         <AnimatePresence mode="wait">
-          {/* Loading state */}
-          {loading && (
+          {/* Loading state — shown while generating OR while router is navigating */}
+          {(isPending || submitted) && (
             <motion.div
               key="loading"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -164,12 +198,7 @@ export default function GetQuotePage({
                 </p>
               </div>
               <div className="flex flex-col items-center gap-2 text-xs text-muted-foreground">
-                {[
-                  "Analyzing project requirements",
-                  "Recommending tech stack",
-                  "Building phase timeline",
-                  "Calculating estimate",
-                ].map((s, i) => (
+                {GENERATION_STEPS.map((s, i) => (
                   <motion.div
                     key={s}
                     initial={{ opacity: 0 }}
@@ -186,15 +215,15 @@ export default function GetQuotePage({
           )}
 
           {/* Form */}
-          {!loading && (
+          {!isPending && !submitted && (
             <motion.div
               key="form"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, x: 4 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -4 }}
               transition={{ duration: 0.4 }}
             >
-              {/* Progress */}
+              {/* Progress indicator */}
               <div className="mb-8 flex justify-center">
                 <div className="flex items-center justify-between w-full max-w-md px-2 sm:px-0 sm:gap-6">
                   {steps.map((s, i) => (
@@ -221,7 +250,7 @@ export default function GetQuotePage({
                         </div>
                         <span
                           className={cn(
-                            "text-[11px] whitespace-nowrap",
+                            "text-[11px] text-center",
                             i === step
                               ? "text-foreground"
                               : "text-muted-foreground",
@@ -230,14 +259,6 @@ export default function GetQuotePage({
                           {s}
                         </span>
                       </div>
-                      {/* {i < steps.length - 1 && (
-                        <div
-                          className={cn(
-                            "mb-4 h-px flex-1 transition-colors",
-                            i < step ? "bg-blue-500/50" : "bg-border/40",
-                          )}
-                        />
-                      )} */}
                     </div>
                   ))}
                 </div>
@@ -245,7 +266,7 @@ export default function GetQuotePage({
 
               <div className="rounded-2xl border border-border/50 bg-card/20 p-6 sm:p-8">
                 <AnimatePresence mode="wait">
-                  {/* Step 0 — Details */}
+                  {/* Step 0 — Your details */}
                   {step === 0 && (
                     <motion.div
                       key="step0"
@@ -257,7 +278,7 @@ export default function GetQuotePage({
                     >
                       <div>
                         <h2 className="text-lg font-medium">
-                          Let's start with your details
+                          Let&apos;s start with your details
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
                           So we can personalize your proposal.
@@ -273,7 +294,7 @@ export default function GetQuotePage({
                             placeholder="John Smith"
                             value={form.name}
                             onChange={(e) =>
-                              setForm({ ...form, name: e.target.value })
+                              handleFieldChange({ name: e.target.value })
                             }
                             className="h-11 w-full rounded-xl border border-border/60 bg-background px-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                           />
@@ -287,7 +308,7 @@ export default function GetQuotePage({
                             placeholder="john@company.com"
                             value={form.email}
                             onChange={(e) =>
-                              setForm({ ...form, email: e.target.value })
+                              handleFieldChange({ email: e.target.value })
                             }
                             className="h-11 w-full rounded-xl border border-border/60 bg-background px-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                           />
@@ -319,7 +340,7 @@ export default function GetQuotePage({
                           <button
                             key={pt.value}
                             onClick={() =>
-                              setForm({ ...form, projectType: pt.value })
+                              handleFieldChange({ projectType: pt.value })
                             }
                             className={cn(
                               "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
@@ -337,7 +358,8 @@ export default function GetQuotePage({
                       </div>
                     </motion.div>
                   )}
-                  {/* Step 2 — Project Context */}
+
+                  {/* Step 2 — Project context */}
                   {step === 2 && (
                     <motion.div
                       key="step2"
@@ -356,7 +378,6 @@ export default function GetQuotePage({
                         </p>
                       </div>
 
-                      {/* Stage */}
                       <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium">
                           Current stage
@@ -371,7 +392,7 @@ export default function GetQuotePage({
                             <button
                               key={option}
                               onClick={() =>
-                                setForm({ ...form, stage: option })
+                                handleFieldChange({ stage: option })
                               }
                               className={cn(
                                 "rounded-xl border p-3 text-left text-sm transition",
@@ -386,7 +407,6 @@ export default function GetQuotePage({
                         </div>
                       </div>
 
-                      {/* Budget */}
                       <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium">
                           Budget (optional)
@@ -402,7 +422,7 @@ export default function GetQuotePage({
                             <button
                               key={option}
                               onClick={() =>
-                                setForm({ ...form, budget: option })
+                                handleFieldChange({ budget: option })
                               }
                               className={cn(
                                 "rounded-xl border p-3 text-left text-sm transition",
@@ -417,7 +437,6 @@ export default function GetQuotePage({
                         </div>
                       </div>
 
-                      {/* Timeline */}
                       <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium">
                           When do you need this?
@@ -428,7 +447,7 @@ export default function GetQuotePage({
                               <button
                                 key={option}
                                 onClick={() =>
-                                  setForm({ ...form, timeline: option })
+                                  handleFieldChange({ timeline: option })
                                 }
                                 className={cn(
                                   "rounded-xl border p-3 text-left text-sm transition",
@@ -449,7 +468,7 @@ export default function GetQuotePage({
                   {/* Step 3 — Description */}
                   {step === 3 && (
                     <motion.div
-                      key="step2"
+                      key="step3"
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -20 }}
@@ -475,7 +494,7 @@ export default function GetQuotePage({
                           value={form.description}
                           maxLength={500}
                           onChange={(e) =>
-                            setForm({ ...form, description: e.target.value })
+                            handleFieldChange({ description: e.target.value })
                           }
                           className="w-full resize-none rounded-xl border border-border/60 bg-background px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                         />
@@ -487,10 +506,18 @@ export default function GetQuotePage({
                   )}
                 </AnimatePresence>
 
-                {error && (
-                  <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/8 px-4 py-3 text-sm text-destructive">
-                    {error}
-                  </div>
+                {/* Error banner — only shown when mutation fails */}
+                {isError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 rounded-xl border border-destructive/30 bg-destructive/8 px-4 py-3 text-sm text-destructive"
+                  >
+                    {error.message}
+                    {error.details && (
+                      <span className="ml-1 opacity-60">({error.details})</span>
+                    )}
+                  </motion.div>
                 )}
 
                 <div className="mt-6 flex items-center justify-between">
@@ -503,7 +530,7 @@ export default function GetQuotePage({
                   </button>
                   <button
                     onClick={handleNext}
-                    disabled={!canProceed()}
+                    disabled={!canProceed() || isPending}
                     className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     {step === steps.length - 1 ? (
@@ -519,7 +546,7 @@ export default function GetQuotePage({
                 </div>
               </div>
 
-              {/* Badges */}
+              {/* Trust badges */}
               <div className="mt-6 flex flex-wrap items-center justify-center gap-5">
                 {[
                   "Free, no commitment",
@@ -536,7 +563,6 @@ export default function GetQuotePage({
                 ))}
               </div>
 
-              {/* 🔥 Demo link (separate, clean) */}
               <div className="mt-3 text-center">
                 <Link
                   href="/get-quote/sample"
