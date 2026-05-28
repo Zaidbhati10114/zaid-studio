@@ -1,7 +1,7 @@
+// app/quotes/[id]/page.tsx
 import QuoteClient from "@/app/components/QuoteClient";
 import { supabase } from "@/lib/supabase";
-
-import { Link } from "lucide-react";
+import Link from "next/link"; // ← was incorrectly imported from lucide-react
 
 export const revalidate = 600;
 
@@ -11,6 +11,7 @@ export default async function QuotePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
   const { data: quote, error } = await supabase
     .from("quotes")
     .select("*")

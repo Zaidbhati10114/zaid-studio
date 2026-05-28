@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+body {
+  overflow-x: clip;
+  position: relative;
+}
+
+input, textarea, select {
+  font-size: 16px !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -66,3 +75,4 @@
 .light .dot-grid {
   background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
 }
+

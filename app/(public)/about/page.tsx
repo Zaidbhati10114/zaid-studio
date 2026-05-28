@@ -336,7 +336,7 @@ export default function AboutPage() {
         >
           <div className="pointer-events-none absolute -top-12 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full bg-blue-600/10 blur-[60px]" />
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Let's build something together
+            Let&apos;s build something together
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Currently accepting new projects. Get a quote in under 30 seconds.

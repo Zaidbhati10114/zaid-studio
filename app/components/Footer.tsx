@@ -50,7 +50,7 @@ export default function Footer() {
             </p>
 
             <a
-              href="mailto:zaidbhati7007@gmail.com"
+              href="/contact"
               className="flex w-fit items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <Mail className="size-3.5" />

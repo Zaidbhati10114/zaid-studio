@@ -14,11 +14,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const navItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-];
+const navItems = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }];
 
-export default function AdminLayout({
+export default function AdminDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -26,10 +24,6 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-
-  if (!pathname || pathname === "/admin/login") {
-    return <>{children}</>;
-  }
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -69,7 +63,11 @@ export default function AdminLayout({
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
         >
-          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          {theme === "dark" ? (
+            <Sun className="size-4" />
+          ) : (
+            <Moon className="size-4" />
+          )}
           {theme === "dark" ? "Light Mode" : "Dark Mode"}
         </button>
         <button
@@ -102,10 +100,15 @@ export default function AdminLayout({
                 <span className="sr-only">Open navigation menu</span>
               </button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[88vw] max-w-xs border-r border-border/50 bg-background p-0">
+            <SheetContent
+              side="left"
+              className="w-[88vw] max-w-xs border-r border-border/50 bg-background p-0"
+            >
               <SheetHeader className="sr-only">
                 <SheetTitle>Admin navigation</SheetTitle>
-                <SheetDescription>Open dashboard links and account actions.</SheetDescription>
+                <SheetDescription>
+                  Open dashboard links and account actions.
+                </SheetDescription>
               </SheetHeader>
               <div className="flex h-full flex-col p-4">{navContent}</div>
             </SheetContent>

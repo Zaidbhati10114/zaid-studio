@@ -62,11 +62,8 @@ export default function FaqSection() {
           </h2>
         </div>
         <p className="text-sm text-muted-foreground max-w-xs">
-          Can't find what you're looking for?{" "}
-          <a
-            href="mailto:zaidbhati7007@gmail.com"
-            className="text-blue-500 hover:underline"
-          >
+          Can&apos;t find what you&apos;re looking for?{" "}
+          <a href="/contact" className="text-blue-500 hover:underline">
             Email me directly.
           </a>
         </p>
