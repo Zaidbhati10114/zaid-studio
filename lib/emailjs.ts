@@ -1,32 +1,43 @@
-import emailjs from "@emailjs/browser";
+// lib/sendProposal.ts
+// Replaces lib/emailjs.ts — call this from QuoteClient
 
-const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!;
-const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!;
-const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!;
+interface QuotePhase {
+    name: string;
+    duration: string;
+}
 
-interface SendQuoteEmailParams {
+interface QuoteRisk {
+    risk: string;
+    mitigation: string;
+}
+
+export interface SendProposalParams {
     toEmail: string;
     clientName: string;
     projectType: string;
     quoteUrl: string;
-    summary: string;
-    timeline: string;
-    cost: string;
+    // proposal content for PDF
+    summary?: string;
+    estimated_timeline?: string;
+    estimated_cost?: string;
+    complexity?: string;
+    deliverables?: string[];
+    tech_stack?: string[];
+    phases?: QuotePhase[];
+    client_responsibilities?: string[];
+    risks?: QuoteRisk[];
+    next_steps?: string[];
 }
 
-export async function sendQuoteEmail(params: SendQuoteEmailParams) {
-    return emailjs.send(
-        SERVICE_ID,
-        TEMPLATE_ID,
-        {
-            to_email: params.toEmail,
-            client_name: params.clientName,
-            project_type: params.projectType,
-            quote_url: params.quoteUrl,
-            summary: params.summary,
-            timeline: params.timeline,
-            cost: params.cost,
-        },
-        PUBLIC_KEY
-    );
+export async function sendProposal(params: SendProposalParams): Promise<void> {
+    const res = await fetch("/api/send-proposal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+    });
+
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to send proposal. Please try again.");
+    }
 }

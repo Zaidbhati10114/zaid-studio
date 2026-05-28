@@ -9,6 +9,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLockHorizontalScroll } from "@/hooks/useLockHorizontalScroll";
 import { useGenerateQuote, type QuoteFormData } from "@/hooks/useQuote";
+import { quoteSchema, type QuoteFormValues } from "@/lib/quote-schema";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const projectTypes = [
   { value: "Website", label: "Website", icon: "🌐" },
@@ -55,6 +58,26 @@ export default function GetQuotePage({
   const { service } = use(searchParams);
 
   const prefilledProjectType = service ? (SERVICE_MAP[service] ?? "") : "";
+  const {
+    register,
+    watch,
+    setValue,
+    trigger,
+    formState: { errors },
+    getValues,
+  } = useForm<QuoteFormValues>({
+    resolver: zodResolver(quoteSchema),
+    mode: "onSubmit",
+    defaultValues: {
+      name: "",
+      email: "",
+      projectType: prefilledProjectType,
+      stage: "",
+      budget: "",
+      timeline: "",
+      description: "",
+    },
+  });
 
   const [step, setStep] = useState(0);
 
@@ -62,20 +85,12 @@ export default function GetQuotePage({
 
   useEffect(() => {
     if (step === 0) return; // don't scroll on initial load
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [step]);
+
   // Latched to true on success — prevents the form flashing back while
   // the router is still navigating to /quotes/[id]
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState<QuoteFormData>({
-    name: "",
-    email: "",
-    projectType: prefilledProjectType,
-    stage: "",
-    budget: "",
-    timeline: "",
-    description: "",
-  });
 
   // ── React Query mutation ───────────────────────────────────────────────────
   const {
@@ -91,36 +106,83 @@ export default function GetQuotePage({
     },
   });
 
+  useEffect(() => {
+    if (isPending || submitted) {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [isPending, submitted]);
+
+  const formValues = watch();
+
   // ── Step validation ────────────────────────────────────────────────────────
-  const canProceed = (): boolean => {
+  const canProceed = () => {
     switch (step) {
       case 0:
-        return !!(form.name.trim() && form.email.trim());
+        return !!formValues.name && !!formValues.email;
+
       case 1:
-        return !!form.projectType;
+        return !!formValues.projectType;
+
       case 2:
-        return !!(form.stage && form.timeline);
+        return !!formValues.stage && !!formValues.timeline;
+
       case 3:
-        return form.description.trim().length > 10;
+        return formValues.description?.trim().length >= 20;
+
       default:
         return false;
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    let valid = false;
+
+    switch (step) {
+      case 0:
+        valid = await trigger(["name", "email"]);
+        break;
+
+      case 1:
+        valid = await trigger(["projectType"]);
+        break;
+
+      case 2:
+        valid = await trigger(["stage", "timeline"]);
+        break;
+
+      case 3:
+        valid = await trigger(["description"]);
+        break;
+    }
+
+    if (!valid) return;
+
     if (step < steps.length - 1) {
       setStep((s) => s + 1);
     } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      generateQuote(form);
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+
+      generateQuote(getValues() as QuoteFormData);
     }
   };
 
-  // Clear mutation error when user starts editing again
-  const handleFieldChange = (patch: Partial<QuoteFormData>) => {
-    if (isError) resetMutation();
-    setForm((prev) => ({ ...prev, ...patch }));
-  };
+  //  const handleFieldChange = <
+  //   K extends keyof QuoteFormValues
+  // >(
+  //   field: K,
+  //   value: QuoteFormValues[K]
+  // ) => {
+  //   if (isError) {
+  //     resetMutation();
+  //   }
+
+  //   setValue(field, value, {
+  //     shouldValidate: true,
+  //   });
+  // };
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -292,12 +354,15 @@ export default function GetQuotePage({
                           <input
                             type="text"
                             placeholder="John Smith"
-                            value={form.name}
-                            onChange={(e) =>
-                              handleFieldChange({ name: e.target.value })
-                            }
+                            {...register("name")}
                             className="h-11 w-full rounded-xl border border-border/60 bg-background px-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                           />
+
+                          {errors.name && (
+                            <p className="text-sm text-destructive">
+                              {errors.name.message}
+                            </p>
+                          )}
                         </div>
                         <div className="flex flex-col gap-1.5">
                           <label className="text-sm font-medium">
@@ -306,12 +371,14 @@ export default function GetQuotePage({
                           <input
                             type="email"
                             placeholder="john@company.com"
-                            value={form.email}
-                            onChange={(e) =>
-                              handleFieldChange({ email: e.target.value })
-                            }
+                            {...register("email")}
                             className="h-11 w-full rounded-xl border border-border/60 bg-background px-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                           />
+                          {errors.email && (
+                            <p className="text-sm text-destructive">
+                              {errors.email.message}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -338,13 +405,16 @@ export default function GetQuotePage({
                       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
                         {projectTypes.map((pt) => (
                           <button
+                            type="button"
                             key={pt.value}
                             onClick={() =>
-                              handleFieldChange({ projectType: pt.value })
+                              setValue("projectType", pt.value, {
+                                shouldValidate: true,
+                              })
                             }
                             className={cn(
                               "flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors",
-                              form.projectType === pt.value
+                              watch("projectType") === pt.value
                                 ? "border-blue-500/50 bg-blue-500/8 text-foreground"
                                 : "border-border/50 hover:border-border text-muted-foreground hover:text-foreground",
                             )}
@@ -355,6 +425,11 @@ export default function GetQuotePage({
                             </span>
                           </button>
                         ))}
+                        {errors.projectType && (
+                          <p className="text-sm text-destructive">
+                            {errors.projectType.message}
+                          </p>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -392,11 +467,13 @@ export default function GetQuotePage({
                             <button
                               key={option}
                               onClick={() =>
-                                handleFieldChange({ stage: option })
+                                setValue("stage", option, {
+                                  shouldValidate: true,
+                                })
                               }
                               className={cn(
                                 "rounded-xl border p-3 text-left text-sm transition",
-                                form.stage === option
+                                watch("stage") === option
                                   ? "border-blue-500 bg-blue-500/10"
                                   : "border-border/50 hover:border-border",
                               )}
@@ -404,6 +481,11 @@ export default function GetQuotePage({
                               {option}
                             </button>
                           ))}
+                          {errors.stage && (
+                            <p className="text-sm text-destructive">
+                              {errors.stage.message}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -420,13 +502,16 @@ export default function GetQuotePage({
                             "Not sure",
                           ].map((option) => (
                             <button
+                              type="button"
                               key={option}
                               onClick={() =>
-                                handleFieldChange({ budget: option })
+                                setValue("budget", option, {
+                                  shouldValidate: true,
+                                })
                               }
                               className={cn(
                                 "rounded-xl border p-3 text-left text-sm transition",
-                                form.budget === option
+                                watch("budget") === option
                                   ? "border-blue-500 bg-blue-500/10"
                                   : "border-border/50 hover:border-border",
                               )}
@@ -445,13 +530,16 @@ export default function GetQuotePage({
                           {["ASAP", "2–4 weeks", "1–2 months", "Flexible"].map(
                             (option) => (
                               <button
+                                type="button"
                                 key={option}
                                 onClick={() =>
-                                  handleFieldChange({ timeline: option })
+                                  setValue("timeline", option, {
+                                    shouldValidate: true,
+                                  })
                                 }
                                 className={cn(
                                   "rounded-xl border p-3 text-left text-sm transition",
-                                  form.timeline === option
+                                  watch("timeline") === option
                                     ? "border-blue-500 bg-blue-500/10"
                                     : "border-border/50 hover:border-border",
                                 )}
@@ -459,6 +547,11 @@ export default function GetQuotePage({
                                 {option}
                               </button>
                             ),
+                          )}
+                          {errors.timeline && (
+                            <p className="text-sm text-destructive">
+                              {errors.timeline.message}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -491,16 +584,18 @@ export default function GetQuotePage({
                         <textarea
                           rows={5}
                           placeholder="e.g. I need a SaaS dashboard with user authentication, subscription billing, and a usage analytics page..."
-                          value={form.description}
-                          maxLength={500}
-                          onChange={(e) =>
-                            handleFieldChange({ description: e.target.value })
-                          }
+                          {...register("description")}
+                          maxLength={1000}
                           className="w-full resize-none rounded-xl border border-border/60 bg-background px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                         />
                         <p className="text-xs text-muted-foreground">
-                          {form.description.length}/500 characters
+                          {watch("description")?.length ?? 0}/1000
                         </p>
+                        {errors.description && (
+                          <p className="text-sm text-red-500">
+                            {errors.description.message}
+                          </p>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -522,6 +617,7 @@ export default function GetQuotePage({
 
                 <div className="mt-6 flex items-center justify-between">
                   <button
+                    type="button"
                     onClick={() => setStep((s) => Math.max(0, s - 1))}
                     disabled={step === 0}
                     className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-0 transition-colors"

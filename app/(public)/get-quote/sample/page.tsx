@@ -3,7 +3,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 import QuoteClient from "@/app/components/QuoteClient";
 
-const sampleProposal = {
+export const sampleProposal = {
   name: "Fitness Business Management Platform",
   summary:
     "A complete digital platform for a fitness business with membership management, online payments, and a modern admin dashboard to streamline daily operations.",
@@ -117,7 +117,7 @@ export default function SampleProposalPage() {
       {/* Proposal */}
       <section className="px-4 py-10 sm:px-6">
         <div className="mx-auto max-w-5xl">
-          <QuoteClient quote={sampleProposal} id="sample-proposal" />
+          <QuoteClient quote={sampleProposal} id="sample-proposal" isSample />
         </div>
       </section>
 

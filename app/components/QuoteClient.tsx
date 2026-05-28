@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { useLockHorizontalScroll } from "@/hooks/useLockHorizontalScroll";
 import { useMutation } from "@tanstack/react-query";
-import { sendQuoteEmail } from "@/lib/emailjs";
+import { sendProposal, type SendProposalParams } from "@/lib/emailjs";
 
 import {
   AlertTriangle,
@@ -85,33 +85,31 @@ interface QuoteClientProps {
 }
 
 // ─── Email mutation fn ────────────────────────────────────────────────────────
-
-interface SendEmailPayload {
-  toEmail: string;
-  clientName: string;
-  projectType: string;
-  quoteUrl: string;
-  summary: string;
-  timeline: string;
-  cost: string;
-}
-
-async function sendEmail(payload: SendEmailPayload) {
-  await sendQuoteEmail(payload);
+async function sendEmail(payload: SendProposalParams) {
+  await sendProposal(payload);
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function QuoteClient({ quote, id }: QuoteClientProps) {
+export default function QuoteClient({
+  quote,
+  id,
+  isSample = false,
+}: QuoteClientProps) {
+  const [showSuccess, setShowSuccess] = useState(false);
   useLockHorizontalScroll();
 
   const [copied, setCopied] = useState(false);
   const [emailInput, setEmailInput] = useState("");
 
-  const quoteUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/quotes/${id}`
-      : `https://zaid-studio.vercel.app/quotes/${id}`;
+  // Replace the quoteUrl const with this:
+  const [quoteUrl, setQuoteUrl] = useState(
+    `https://zaidstudio.vercel.app/quotes/${id}`,
+  );
+
+  useEffect(() => {
+    setQuoteUrl(`${window.location.origin}/quotes/${id}`);
+  }, [id]);
 
   const bookingNotes = `
 Project Type: ${quote.project_type ?? "Project"}
@@ -144,14 +142,19 @@ ${quoteUrl}
   const {
     mutate: triggerSendEmail,
     isPending: sendingEmail,
-    isSuccess: emailSent,
     isError: hasEmailError,
     error: emailMutationError,
     reset: resetEmail,
-  } = useMutation<void, Error, SendEmailPayload>({
+  } = useMutation<void, Error, SendProposalParams>({
     mutationFn: sendEmail,
-    // No retry — emailjs may double-send on retry
     retry: false,
+    onSuccess: () => {
+      setShowSuccess(true);
+      setEmailInput("");
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 4000); // disappears after 4 seconds
+    },
   });
 
   const handleSendEmail = () => {
@@ -161,9 +164,16 @@ ${quoteUrl}
       clientName: quote.name,
       projectType: quote.project_type ?? "Project",
       quoteUrl,
-      summary: quote.summary ?? "",
-      timeline: quote.estimated_timeline ?? "",
-      cost: quote.estimated_cost ?? "",
+      summary: quote.summary,
+      estimated_timeline: quote.estimated_timeline,
+      estimated_cost: quote.estimated_cost,
+      complexity: quote.complexity,
+      deliverables: quote.deliverables,
+      tech_stack: quote.tech_stack,
+      phases: quote.phases,
+      client_responsibilities: quote.client_responsibilities,
+      risks: quote.risks,
+      next_steps: quote.next_steps,
     });
   };
 
@@ -274,37 +284,57 @@ ${quoteUrl}
               </div>
 
               {/* CTA CARD */}
-              <div className="rounded-2xl border border-border/50 bg-card/20 p-5">
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <a
-                    href={calLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                  >
-                    <CalendarDays className="size-4" />
-                    Discuss Your Project
-                  </a>
-                  <a
-                    href={whatsappLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-5 py-3 text-sm font-medium text-green-400 transition-all hover:bg-green-500/20"
-                  >
-                    💬 Quick Chat on WhatsApp
-                  </a>
-                </div>
-                <div className="mt-4 space-y-1.5 text-center">
-                  <p className="text-xs text-muted-foreground">
-                    No commitment required — just a quick discussion to explore
-                    your idea.
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Slots are limited this week — early discussions get priority
-                    timelines.
-                  </p>
-                </div>
-              </div>
+              {isSample ? (
+                <>
+                  {isSample && (
+                    <p className="mt-3 text-center text-xs text-muted-foreground">
+                      This is a sample —{" "}
+                      <Link
+                        href="/get-quote"
+                        className="text-blue-500 hover:underline"
+                      >
+                        generate your own proposal
+                      </Link>{" "}
+                      to unlock these.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="rounded-2xl border border-border/50 bg-card/20 p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <a
+                        href={calLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                      >
+                        <CalendarDays className="size-4" />
+                        Discuss Your Project
+                      </a>
+                      <a
+                        href={whatsappLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-5 py-3 text-sm font-medium text-green-400 transition-all hover:bg-green-500/20"
+                      >
+                        💬 Quick Chat on WhatsApp
+                      </a>
+                    </div>
+
+                    <div className="mt-4 space-y-1.5 text-center">
+                      <p className="text-xs text-muted-foreground">
+                        No commitment required — just a quick discussion to
+                        explore your idea.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Slots are limited this week — early discussions get
+                        priority timelines.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
         </div>
@@ -497,6 +527,7 @@ ${quoteUrl}
                 copied
                   ? "border border-emerald-500/20 bg-emerald-500/8 text-emerald-400"
                   : "border border-border/60 hover:bg-secondary/50",
+                isSample && "opacity-40 cursor-not-allowed",
               )}
             >
               {copied ? (
@@ -510,60 +541,58 @@ ${quoteUrl}
         </div>
 
         {/* EMAIL */}
-        <div className="rounded-2xl border border-border/50 bg-card/20 p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <Mail className="size-3.5 text-blue-500" />
-            <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-              Get Proposal on Email
-            </span>
-          </div>
-          <p className="mb-4 text-sm text-foreground/70">
-            Send this proposal to your email so you can access it anytime.
-          </p>
-
-          {emailSent ? (
-            <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-4 py-3 text-sm text-emerald-400">
-              <CheckCircle2 className="size-4" />
-              Proposal sent successfully.
+        {!isSample && (
+          <div className="rounded-2xl border border-border/50 bg-card/20 p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <Mail className="size-3.5 text-blue-500" />
+              <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+                Get Proposal on Email
+              </span>
             </div>
-          ) : (
-            <>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={emailInput}
-                  onChange={(e) => {
-                    setEmailInput(e.target.value);
-                    // Clear previous error when user types again
-                    if (hasEmailError) resetEmail();
-                  }}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendEmail()}
-                  className="h-11 flex-1 rounded-xl border border-border/60 bg-background px-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
-                />
-                <button
-                  onClick={handleSendEmail}
-                  disabled={sendingEmail || !emailInput.trim()}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {sendingEmail ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Mail className="size-4" />
-                  )}
-                  {sendingEmail ? "Sending..." : "Send to Email"}
-                </button>
+            <p className="mb-4 text-sm text-foreground/70">
+              Send this proposal to your email so you can access it anytime.
+            </p>
+            {showSuccess && (
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-4 py-3 text-sm text-emerald-400 mb-3">
+                <CheckCircle2 className="size-4 shrink-0" />
+                Proposal sent! Check your inbox.
               </div>
+            )}
 
-              {hasEmailError && (
-                <p className="mt-2 text-sm text-destructive">
-                  {emailMutationError?.message ??
-                    "Failed to send email. Please try again."}
-                </p>
-              )}
-            </>
-          )}
-        </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                type="email"
+                placeholder="your@email.com"
+                value={emailInput}
+                onChange={(e) => {
+                  setEmailInput(e.target.value);
+                  if (hasEmailError) resetEmail();
+                }}
+                onKeyDown={(e) => e.key === "Enter" && handleSendEmail()}
+                className="h-11 flex-1 rounded-xl border border-border/60 bg-background px-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
+              />
+              <button
+                onClick={handleSendEmail}
+                disabled={sendingEmail || !emailInput.trim()}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {sendingEmail ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Mail className="size-4" />
+                )}
+                {sendingEmail ? "Sending..." : "Send to Email"}
+              </button>
+            </div>
+
+            {hasEmailError && (
+              <p className="mt-2 text-sm text-destructive">
+                {emailMutationError?.message ??
+                  "Failed to send email. Please try again."}
+              </p>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );
