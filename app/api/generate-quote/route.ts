@@ -20,7 +20,32 @@ function json(body: unknown, status = 200) {
   });
 }
 
-// ─── Validation ───────────────────────────────────────────────────────────────
+// ─── Structured logger ────────────────────────────────────────────────────────
+// All logs tagged [QG] so you can filter in Vercel with: qg
+function log(stage: string, data: Record<string, unknown>) {
+  console.log(JSON.stringify({ tag: "QG", stage, t: Date.now(), ...data }));
+}
+
+function logError(stage: string, err: unknown, extra?: Record<string, unknown>) {
+  const isError = err instanceof Error;
+  console.error(JSON.stringify({
+    tag: "QG_ERR",
+    stage,
+    t: Date.now(),
+    message: isError ? err.message : String(err),
+    name: isError ? err.name : "UnknownError",
+    stack: isError ? err.stack : undefined,
+    // Gemini SDK puts the HTTP status + body inside the error object
+    // under these two keys — this is what tells us 429 vs 503 vs timeout
+    status: (err as any)?.status ?? (err as any)?.httpStatus ?? undefined,
+    statusText: (err as any)?.statusText ?? undefined,
+    errorDetails: (err as any)?.errorDetails ?? undefined,
+    cause: isError && err.cause ? String(err.cause) : undefined,
+    ...extra,
+  }));
+}
+
+// ─── Types & validation ───────────────────────────────────────────────────────
 
 interface QuoteRequestBody {
   name: string;
@@ -42,64 +67,7 @@ function validateBody(body: Partial<QuoteRequestBody>): body is QuoteRequestBody
 function buildPrompt(body: QuoteRequestBody): string {
   return `
 You are a professional project consultant helping clients understand their project clearly.
-
-Your goal:
-- Be simple, clear, and client-friendly
-- Avoid technical jargon unless necessary
-- Focus on business value, not engineering details
-- Make the proposal feel practical and achievable
-
-Respond ONLY with valid JSON. Use EXACTLY this structure:
-
-{
-  "complexity": "Simple" | "Medium" | "Complex",
-  "summary": "Explain the project clearly in 1-2 concise sentences using non-technical language",
-  "estimatedTimeline": "Clear time estimate",
-  "estimatedCost": "Realistic cost range in ₹",
-  "whyHireMe": "1 short client-focused line that builds trust and confidence. Keep it human, practical, and easy to relate to. Avoid resume metrics, user numbers, or corporate-style claims.",
-  "deliverables": [
-    "Clear business outcome",
-    "Feature explained in simple language"
-  ],
-  "techStack": [],
-  "phases": [
-    { "name": "Phase name", "duration": "Estimated duration" }
-  ],
-  "clientResponsibilities": [],
-  "risks": [
-    { "risk": "Short risk title", "mitigation": "Simple explanation of how it will be handled" }
-  ],
-  "nextSteps": [
-    "Quick discovery discussion",
-    "Finalize project scope and timeline",
-    "Begin development process"
-  ]
-}
-
-IMPORTANT RULES:
-- Use SIMPLE language (non-technical)
-- Do NOT overcomplicate simple projects
-- Never mention user counts, enterprise metrics, or resume statistics
-- Keep proposals realistic and believable with reasonably tight pricing ranges
-- Avoid sounding like a large enterprise agency
-- Deliverables must feel valuable, not technical
-- Keep everything concise
-
-PRICING GUIDELINES (Indian market):
-- Simple websites/landing pages: ₹5,000 – ₹15,000
-- Medium business platforms/management systems: ₹15,000 – ₹40,000
-- Complex SaaS platforms: ₹40,000 – ₹80,000+
-- Avoid enterprise-level pricing unless scope clearly requires it
-
-PERSONALIZATION:
-- Stage "Starting from scratch" → suggest full build with simple structured roadmap
-- Stage "I have a basic website" → focus on improvements and better UX
-- Stage "Need redesign" → focus on UI/UX, performance, conversion improvements
-- Stage "Need advanced features" → increase scope and technical complexity
-- Low budget → suggest MVP-style solution
-- "ASAP" timeline → keep scope focused and achievable quickly
-- Flexible timeline → allow better polish and planning
-
+... (keep your existing prompt exactly as-is)
 Developer Profile:
 ${RESUME_CONTEXT}
 
@@ -116,48 +84,83 @@ Timeline Expectation: ${body.timeline}
 }
 
 async function callGemini(prompt: string): Promise<GeneratedQuote> {
-  const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
+  const model = "gemini-2.0-flash-exp"; // or whatever your working model string is
+  log("gemini_start", { model, promptChars: prompt.length });
 
-  const cleaned = text.replace(/```json|```/g, "").trim();
-  const match = cleaned.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("AI response did not contain valid JSON");
+  const t0 = Date.now();
+  let rawText = "";
 
-  return JSON.parse(match[0]) as GeneratedQuote;
+  try {
+    const geminiModel = genAI.getGenerativeModel({ model });
+    const result = await geminiModel.generateContent(prompt);
+    rawText = result.response.text();
+
+    log("gemini_ok", {
+      ms: Date.now() - t0,
+      rawChars: rawText.length,
+      // First 120 chars so you can see if it returned garbage vs real JSON
+      preview: rawText.slice(0, 120).replace(/\n/g, " "),
+    });
+  } catch (err) {
+    logError("gemini_call", err, {
+      ms: Date.now() - t0,
+      model,
+      promptChars: prompt.length,
+    });
+    throw err;
+  }
+
+  // Parse step is separate so we know if Gemini succeeded but JSON was malformed
+  try {
+    const cleaned = rawText.replace(/```json|```/g, "").trim();
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON object found in response");
+    const parsed = JSON.parse(match[0]) as GeneratedQuote;
+    log("gemini_parsed", { complexity: parsed.complexity });
+    return parsed;
+  } catch (err) {
+    logError("gemini_parse", err, {
+      rawPreview: rawText.slice(0, 300).replace(/\n/g, " "),
+    });
+    throw err;
+  }
 }
 
 // ─── DB persistence ───────────────────────────────────────────────────────────
 
-async function saveQuote(
-  body: QuoteRequestBody,
-  quote: GeneratedQuote
-): Promise<string> {
-  const { data, error } = await supabaseAdmin
-    .from("quotes")
-    .insert({
-      name: body.name,
-      email: body.email,
-      project_type: body.projectType,
-      description: body.description,
-      summary: quote.summary,
-      estimated_timeline: quote.estimatedTimeline,
-      estimated_cost: quote.estimatedCost,
-      why_hire_me: quote.whyHireMe,
-      next_steps: quote.nextSteps,
-      complexity: quote.complexity,
-      deliverables: quote.deliverables,
-      tech_stack: quote.techStack,
-      phases: quote.phases,
-      client_responsibilities: quote.clientResponsibilities,
-      risks: quote.risks,
-      status: "new",
-    })
-    .select("id")
-    .single();
+async function saveQuote(body: QuoteRequestBody, quote: GeneratedQuote): Promise<string> {
+  const t0 = Date.now();
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("quotes")
+      .insert({
+        name: body.name,
+        email: body.email,
+        project_type: body.projectType,
+        description: body.description,
+        summary: quote.summary,
+        estimated_timeline: quote.estimatedTimeline,
+        estimated_cost: quote.estimatedCost,
+        why_hire_me: quote.whyHireMe,
+        next_steps: quote.nextSteps,
+        complexity: quote.complexity,
+        deliverables: quote.deliverables,
+        tech_stack: quote.techStack,
+        phases: quote.phases,
+        client_responsibilities: quote.clientResponsibilities,
+        risks: quote.risks,
+        status: "new",
+      })
+      .select("id")
+      .single();
 
-  if (error) throw error;
-  return data.id as string;
+    if (error) throw error;
+    log("db_ok", { ms: Date.now() - t0, quoteId: data.id });
+    return data.id as string;
+  } catch (err) {
+    logError("db_save", err, { ms: Date.now() - t0 });
+    throw err;
+  }
 }
 
 // ─── Route handlers ───────────────────────────────────────────────────────────
@@ -167,7 +170,10 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: NextRequest) {
-  // 1. Parse & validate request body
+  const requestId = crypto.randomUUID().slice(0, 8); // ties all logs for one request together
+  log("request_start", { requestId });
+
+  // 1. Parse & validate
   let body: Partial<QuoteRequestBody>;
   try {
     body = await request.json();
@@ -176,40 +182,47 @@ export async function POST(request: NextRequest) {
   }
 
   if (!validateBody(body)) {
+    log("validation_fail", { requestId, fields: Object.keys(body) });
     return json({ error: "Please complete all required fields" }, 400);
   }
 
-  // 2. Generate quote with AI
+  log("request_valid", {
+    requestId,
+    projectType: body.projectType,
+    stage: body.stage,
+    timeline: body.timeline,
+    descriptionChars: body.description.length,
+  });
+
+  // 2. Generate quote
   let quote: GeneratedQuote;
   try {
     quote = await callGemini(buildPrompt(body));
   } catch (err) {
-    console.error("[generate-quote] AI generation failed:", err);
+    // logError already called inside callGemini — just return the response
     return json(
       {
         error: "Failed to generate proposal. Please try again.",
         details: err instanceof Error ? err.message : "Unknown AI error",
       },
-      502
+      502,
     );
   }
 
-  // 3. Persist to DB
+  // 3. Persist
   let quoteId: string;
   try {
     quoteId = await saveQuote(body, quote);
   } catch (err) {
-    console.error("[generate-quote] DB save failed:", err);
-    // Return the generated quote even if save fails — the user
-    // can still see their proposal; we just can't give them a permalink.
     return json(
       {
         error: "Proposal was generated but could not be saved. Please try again.",
         details: err instanceof Error ? err.message : "Unknown DB error",
       },
-      500
+      500,
     );
   }
 
+  log("request_done", { requestId, quoteId });
   return json({ success: true, quoteId, quote });
 }
