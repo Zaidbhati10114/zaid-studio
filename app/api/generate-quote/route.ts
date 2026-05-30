@@ -1,9 +1,12 @@
 // app/api/generate-quote/route.ts
+export const runtime = "edge";
+
 import { NextRequest } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabase-server";
 import { RESUME_CONTEXT } from "@/lib/resumeContext";
 import type { GeneratedQuote } from "@/hooks/useQuote";
+import * as Sentry from '@sentry/nextjs';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -159,7 +162,13 @@ async function callGemini(prompt: string): Promise<GeneratedQuote> {
       const retryable = status === 503 || status === 429;
       logError("gemini_call", err, { ms: Date.now() - t0, attempt, retryable });
 
-      if (!retryable || attempt === 3) throw err;
+      // Only capture to Sentry on final attempt — not every retry
+      if (!retryable || attempt === 3) {
+        Sentry.captureException(err, {
+          tags: { layer: "gemini", model: modelName },
+          extra: { attempt, ms: Date.now() - t0, status, promptChars: prompt.length },
+        });
+      }
 
       // wait 1s, then 2s before next attempt
       await new Promise(res => setTimeout(res, attempt * 1000));
@@ -175,6 +184,10 @@ async function callGemini(prompt: string): Promise<GeneratedQuote> {
     return parsed;
   } catch (err) {
     logError("gemini_parse", err, { rawPreview: text.slice(0, 300).replace(/\n/g, " ") });
+    Sentry.captureException(err, {
+      tags: { layer: "gemini_parse" },
+      extra: { rawPreview: text.slice(0, 300) },
+    });
     throw err;
   }
 }
@@ -215,6 +228,10 @@ async function saveQuote(
     return data.id as string;
   } catch (err) {
     logError("db_save", err, { ms: Date.now() - t0 });
+    Sentry.captureException(err, {
+      tags: { layer: "supabase", operation: "insert_quote" },
+      extra: { ms: Date.now() - t0, projectType: body.projectType },
+    });
     throw err;
   }
 }
@@ -242,6 +259,8 @@ export async function POST(request: NextRequest) {
   }
 
   log("request_valid", { requestId, projectType: body.projectType, stage: body.stage, timeline: body.timeline });
+  Sentry.setUser({ email: body.email, username: body.name });
+  Sentry.setTag("route", "generate-quote");
 
   // 2. Generate quote with AI
   let quote: GeneratedQuote;
@@ -264,6 +283,7 @@ export async function POST(request: NextRequest) {
     quoteId = await saveQuote(body, quote);
   } catch (err) {
     console.error("[generate-quote] DB save failed:", err);
+
     return json(
       {
         error: "Proposal was generated but could not be saved. Please try again.",

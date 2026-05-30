@@ -7,6 +7,7 @@ import type { LucideIcon } from "lucide-react";
 import { useLockHorizontalScroll } from "@/hooks/useLockHorizontalScroll";
 import { useMutation } from "@tanstack/react-query";
 import { sendProposal, type SendProposalParams } from "@/lib/emailjs";
+import * as Sentry from "@sentry/nextjs";
 
 import {
   AlertTriangle,
@@ -148,6 +149,12 @@ ${quoteUrl}
   } = useMutation<void, Error, SendProposalParams>({
     mutationFn: sendEmail,
     retry: false,
+    onError: (err) => {
+      Sentry.captureException(err, {
+        tags: { layer: "email_send" },
+        extra: { quoteId: id, projectType: quote.project_type },
+      });
+    },
     onSuccess: () => {
       setShowSuccess(true);
       setEmailInput("");

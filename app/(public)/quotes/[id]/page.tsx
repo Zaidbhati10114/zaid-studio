@@ -1,7 +1,10 @@
 // app/quotes/[id]/page.tsx
 import QuoteClient from "@/app/components/QuoteClient";
 import { supabase } from "@/lib/supabase";
-import Link from "next/link"; // ← was incorrectly imported from lucide-react
+import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
+
+const SentryQuoteClient = Sentry.withSentryReactRouterV6Routing; // ← was incorrectly imported from lucide-react
 
 export const revalidate = 600;
 
@@ -18,6 +21,14 @@ export default async function QuotePage({
     .eq("id", id)
     .single();
 
+  if (error) {
+    // Actual DB error — worth knowing about
+    Sentry.captureException(error, {
+      tags: { layer: "quote_fetch", operation: "select_quote" },
+      extra: { quoteId: id },
+    });
+  }
+
   if (error || !quote) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-center px-6">
@@ -32,5 +43,5 @@ export default async function QuotePage({
     );
   }
 
-  return <QuoteClient quote={quote} id={id} />;
+  return <QuoteClient quote={quote} id={id} isSample={false} />;
 }

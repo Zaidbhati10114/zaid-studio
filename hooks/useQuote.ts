@@ -1,5 +1,6 @@
 // hooks/useQuote.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as Sentry from "@sentry/nextjs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,6 @@ export interface GenerateQuoteResponse {
     quote: GeneratedQuote;
 }
 
-// Typed API error — carries HTTP status + server message
 export class QuoteApiError extends Error {
     constructor(
         public readonly status: number,
@@ -101,17 +101,9 @@ async function fetchQuote(id: string): Promise<GeneratedQuote & { id: string }> 
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
 
-/**
- * Mutation hook for generating a new quote.
- *
- * Usage:
- *   const { mutate, isPending, isError, error, data } = useGenerateQuote({
- *     onSuccess: (data) => router.push(`/quotes/${data.quoteId}`),
- *   });
- */
 export function useGenerateQuote(options?: {
     onSuccess?: (data: GenerateQuoteResponse) => void;
-    onError?: (error: QuoteApiError) => void;
+    onError?: (error: QuoteApiError) => void;  // ← just the type signature, nothing else
 }) {
     const queryClient = useQueryClient();
 
@@ -119,7 +111,6 @@ export function useGenerateQuote(options?: {
         mutationFn: generateQuote,
 
         onSuccess: (data) => {
-            // Pre-populate the quote detail cache so /quotes/[id] loads instantly
             queryClient.setQueryData(quoteKeys.detail(data.quoteId), {
                 id: data.quoteId,
                 ...data.quote,
@@ -127,33 +118,46 @@ export function useGenerateQuote(options?: {
             options?.onSuccess?.(data);
         },
 
-        onError: (error) => {
+        // ← Sentry capture lives here, inside the hook body
+        onError: (error, variables) => {
+            if (error.status !== 400) {
+                Sentry.captureException(error, {
+                    tags: { layer: "quote_mutation", status: String(error.status) },
+                    extra: {
+                        projectType: variables.projectType,
+                        stage: variables.stage,
+                        timeline: variables.timeline,
+                        descriptionChars: variables.description.length,
+                    },
+                });
+            }
             options?.onError?.(error);
         },
 
-        // No automatic retry for user-facing form submissions — a failed
-        // generation shouldn't silently duplicate DB rows.
         retry: false,
     });
 }
 
-/**
- * Query hook for fetching a saved quote by ID.
- *
- * Usage:
- *   const { data, isLoading, isError } = useQuote(quoteId);
- */
 export function useQuote(id: string | null) {
     return useQuery({
         queryKey: quoteKeys.detail(id ?? ""),
         queryFn: () => fetchQuote(id!),
         enabled: !!id,
-        staleTime: Infinity, // Quotes are immutable once generated
-        gcTime: 1000 * 60 * 30, // Keep in cache 30 min
+        staleTime: Infinity,
+        gcTime: 1000 * 60 * 30,
         retry: (failureCount, error) => {
-            // Don't retry 4xx client errors
             if (error instanceof QuoteApiError && error.status < 500) return false;
             return failureCount < 2;
         },
+        meta: {
+            OnError: (error: QuoteApiError) => {
+                if (error.status >= 500) {
+                    Sentry.captureException(error, {
+                        tags: { layer: "quote_fetch" },
+                        extra: { quoteId: id },
+                    })
+                }
+            }
+        }
     });
 }
