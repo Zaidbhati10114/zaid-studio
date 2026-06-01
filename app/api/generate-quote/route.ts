@@ -67,6 +67,10 @@ function validateBody(body: Partial<QuoteRequestBody>): body is QuoteRequestBody
 // ─── AI generation ────────────────────────────────────────────────────────────
 
 function buildPrompt(body: QuoteRequestBody): string {
+  const isComplex = ["Mobile App", "SaaS Product"].includes(body.projectType);
+  const resumeSection = isComplex
+    ? RESUME_CONTEXT.split("PERSONAL PROJECTS")[0] // just bio + skills, skip projects list
+    : RESUME_CONTEXT;
   return `
 You are a professional project consultant helping clients understand their project clearly.
 
@@ -128,7 +132,7 @@ PERSONALIZATION:
 - Flexible timeline → allow better polish and planning
 
 Developer Profile:
-${RESUME_CONTEXT}
+${resumeSection}
 
 Client Inquiry:
 Name: ${body.name}

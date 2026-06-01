@@ -29,7 +29,7 @@ const providers: AIProvider[] = [
                 model: "llama-3.3-70b-versatile",
                 messages: [{ role: "user", content: prompt }],
                 temperature: 0.7,
-                max_tokens: 1500,
+                max_tokens: 2500,
                 response_format: { type: "json_object" },
             });
             return result.choices[0]?.message?.content ?? "";
@@ -43,7 +43,7 @@ const providers: AIProvider[] = [
                 generationConfig: {
                     responseMimeType: "application/json",
                     temperature: 0.7,
-                    maxOutputTokens: 1500,
+                    maxOutputTokens: 2500,
                 },
             });
             const result = await model.generateContent(prompt);
@@ -57,7 +57,7 @@ const providers: AIProvider[] = [
                 model: "sarvam-105b",
                 messages: [{ role: "user", content: prompt }],
                 temperature: 0.7,
-                max_tokens: 1500,
+                max_tokens: 2500,
             });
             return result.choices[0]?.message?.content ?? "";
         },
