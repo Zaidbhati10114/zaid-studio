@@ -3,23 +3,22 @@ import { check, sleep } from "k6";
 
 export const options = {
   scenarios: {
-    concurrent_users: {
+    realistic_usage: {
       executor: "ramping-vus",
       startVUs: 0,
       stages: [
-        { duration: "20s", target: 3 },
-        { duration: "40s", target: 10 },
-        { duration: "20s", target: 0 },
+        { duration: "30s", target: 2 }, // normal day
+        { duration: "60s", target: 3 }, // busy day
+        { duration: "30s", target: 0 }, // ramp down
       ],
     },
   },
   thresholds: {
-    http_req_duration: ["p(95)<35000"],
-    http_req_failed: ["rate<0.1"],
+    http_req_duration: ["p(95)<30000"],
+    http_req_failed: ["rate<0.05"], // stricter — less than 5% at realistic load
   },
 };
 
-// Different project types to simulate real user variety
 const SCENARIOS = [
   {
     name: "Rahul Sharma",
@@ -74,7 +73,6 @@ const SCENARIOS = [
 ];
 
 export default function () {
-  // Pick a random scenario so requests aren't identical
   const scenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
 
   const res = http.post(
@@ -98,7 +96,7 @@ export default function () {
     "has quoteId": (_) => body?.quoteId !== undefined,
     "no rate limit": (_) => !body?.details?.includes("429"),
     "no empty response": (_) => !body?.details?.includes("No JSON"),
-    "under 35s": (r) => r.timings.duration < 35000,
+    "under 30s": (r) => r.timings.duration < 30000,
   });
 
   if (res.status !== 200) {
@@ -111,5 +109,6 @@ export default function () {
     );
   }
 
-  sleep(Math.random() * 3 + 2);
+  // Realistic think time — users don't spam, they fill a 4-step form
+  sleep(Math.random() * 5 + 3); // 3-8s between requests per user
 }
