@@ -1,10 +1,7 @@
-// app/quotes/[id]/page.tsx
-import QuoteClient from "@/app/components/QuoteClient";
-import { supabase } from "@/lib/supabase";
-import Link from "next/link";
 import * as Sentry from "@sentry/nextjs";
-
-const SentryQuoteClient = Sentry.withSentryReactRouterV6Routing; // ← was incorrectly imported from lucide-react
+import { supabase } from "@/lib/supabase";
+import QuotePageClient from "@/app/components/QuotePageClient";
+import Link from "next/link";
 
 export const revalidate = 600;
 
@@ -22,7 +19,6 @@ export default async function QuotePage({
     .single();
 
   if (error) {
-    // Actual DB error — worth knowing about
     Sentry.captureException(error, {
       tags: { layer: "quote_fetch", operation: "select_quote" },
       extra: { quoteId: id },
@@ -43,5 +39,6 @@ export default async function QuotePage({
     );
   }
 
-  return <QuoteClient quote={quote} id={id} isSample={false} />;
+  // Pass the DB data as a fallback — client will use cache if available
+  return <QuotePageClient id={id} fallbackQuote={quote} />;
 }

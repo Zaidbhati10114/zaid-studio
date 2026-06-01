@@ -150,7 +150,7 @@ export function useQuote(id: string | null) {
             return failureCount < 2;
         },
         meta: {
-            OnError: (error: QuoteApiError) => {
+            onError: (error: QuoteApiError) => {
                 if (error.status >= 500) {
                     Sentry.captureException(error, {
                         tags: { layer: "quote_fetch" },

@@ -11,6 +11,7 @@ import { useGenerateQuote, type QuoteFormData } from "@/hooks/useQuote";
 import { quoteSchema, type QuoteFormValues } from "@/lib/quote-schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import DevQuoteFiller from "@/app/components/DevQuoteFiller";
 
 const projectTypes = [
   { value: "Website", label: "Website", icon: "🌐" },
@@ -166,6 +167,14 @@ export default function GetQuotePage({
 
       generateQuote(getValues() as QuoteFormData);
     }
+  };
+
+  const handleDevFill = (data: QuoteFormData) => {
+    Object.entries(data).forEach(([key, value]) => {
+      setValue(key as keyof QuoteFormValues, value, { shouldValidate: true });
+    });
+    setStep(3);
+    setTimeout(() => generateQuote(data), 100);
   };
 
   return (
@@ -767,6 +776,7 @@ export default function GetQuotePage({
           )}
         </AnimatePresence>
       </section>
+      <DevQuoteFiller onFill={handleDevFill} />
     </div>
   );
 }

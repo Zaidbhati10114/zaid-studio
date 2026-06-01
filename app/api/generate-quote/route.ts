@@ -1,12 +1,13 @@
 // app/api/generate-quote/route.ts
 export const runtime = "edge";
-
+import { } from "@/lib/ai-providers";
 import { NextRequest } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabase-server";
 import { RESUME_CONTEXT } from "@/lib/resumeContext";
 import type { GeneratedQuote } from "@/hooks/useQuote";
 import * as Sentry from '@sentry/nextjs';
+import { callAIWithFallback } from "@/lib/ai-providers";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -183,7 +184,10 @@ async function callGemini(prompt: string): Promise<GeneratedQuote> {
     log("gemini_parsed", { complexity: parsed.complexity });
     return parsed;
   } catch (err) {
-    logError("gemini_parse", err, { rawPreview: text.slice(0, 300).replace(/\n/g, " ") });
+    logError("gemini_parse", err, {
+      rawFull: text, // ← log the full raw text not just 300 chars
+      rawLength: text.length,
+    });
     Sentry.captureException(err, {
       tags: { layer: "gemini_parse" },
       extra: { rawPreview: text.slice(0, 300) },
@@ -265,9 +269,11 @@ export async function POST(request: NextRequest) {
   // 2. Generate quote with AI
   let quote: GeneratedQuote;
   try {
-    quote = await callGemini(buildPrompt(body));
+    quote = await callAIWithFallback(buildPrompt(body));
   } catch (err) {
-    console.error("[generate-quote] AI generation failed:", err);
+    Sentry.captureException(err, {  // ← Sentry stays here in route.ts only
+      tags: { layer: "ai_fallback" },
+    });
     return json(
       {
         error: "Failed to generate proposal. Please try again.",

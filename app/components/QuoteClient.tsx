@@ -97,6 +97,7 @@ export default function QuoteClient({
   id,
   isSample = false,
 }: QuoteClientProps) {
+  console.log(quote);
   const [showSuccess, setShowSuccess] = useState(false);
   useLockHorizontalScroll();
 
