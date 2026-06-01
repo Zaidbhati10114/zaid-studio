@@ -4,6 +4,8 @@ import { ThemeProvider } from "next-themes";
 
 import "./globals.css";
 import { QueryProvider } from "./providers/QueryProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://zaid-studio.vercel.app"),
@@ -94,6 +96,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <SpeedInsights />
+          <Analytics />
+
           <QueryProvider>{children}</QueryProvider>
         </ThemeProvider>
       </body>
