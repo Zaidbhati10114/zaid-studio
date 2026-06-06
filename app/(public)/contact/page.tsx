@@ -1,12 +1,43 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import WhatsAppAndDiscoveryCard from "./components/whatsappanddiscovery-card";
-import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight, Tag } from "lucide-react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function ContactPage() {
+// ── Context map ───────────────────────────────────────────
+const fromMap: Record<string, { label: string; placeholder: string }> = {
+  website: {
+    label: "Landing Page",
+    placeholder:
+      "I'm interested in the Landing Page package. Here's a bit about my project...",
+  },
+  webapp: {
+    label: "Full Stack Web App",
+    placeholder:
+      "I'm interested in the Full Stack Web App package. Here's a bit about my project...",
+  },
+  saas: {
+    label: "SaaS Product",
+    placeholder:
+      "I'm interested in the SaaS Product package. Here's a bit about my project...",
+  },
+  custom: {
+    label: "Custom Product",
+    placeholder:
+      "I have a custom project idea I'd like to discuss. Here's what I'm thinking...",
+  },
+};
+
+// ── Inner component (uses useSearchParams) ────────────────
+function ContactForm() {
+  const searchParams = useSearchParams();
+  const fromKey = searchParams.get("from") ?? "";
+  const context = fromMap[fromKey] ?? null;
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -20,37 +51,27 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     try {
       setLoading(true);
-
       const res = await fetch("/api/contact", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          // Pass the plan context through to the email
+          ...(context ? { regarding: context.label } : {}),
+        }),
       });
-
-      if (!res.ok) {
-        throw new Error();
-      }
-
+      if (!res.ok) throw new Error();
       setSuccess(true);
-
-      setForm({
-        name: "",
-        email: "",
-        company: "",
-        message: "",
-        website: "",
-      });
+      setForm({ name: "", email: "", company: "", message: "", website: "" });
     } catch {
       alert("Failed to send message");
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <section className="mx-auto w-full max-w-3xl px-6 py-24">
       {/* Hero */}
@@ -58,11 +79,9 @@ export default function ContactPage() {
         <p className="mb-3 text-xs font-medium uppercase tracking-widest text-blue-500">
           Contact
         </p>
-
         <h1 className="text-4xl font-semibold tracking-tight">
           Let&apos;s Talk About Your Project
         </h1>
-
         <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
           Have an idea, need advice, or want to discuss a project? Choose
           whichever communication method works best for you.
@@ -75,8 +94,6 @@ export default function ContactPage() {
       </div>
 
       {/* Form */}
-
-      {/* Form */}
       <div className="mt-6 rounded-3xl border border-border/50 bg-card/20 p-6 backdrop-blur-sm sm:p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Honeypot */}
@@ -85,10 +102,7 @@ export default function ContactPage() {
             name="website"
             value={form.website}
             onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                website: e.target.value,
-              }))
+              setForm((prev) => ({ ...prev, website: e.target.value }))
             }
             className="hidden"
             tabIndex={-1}
@@ -100,16 +114,27 @@ export default function ContactPage() {
             <p className="mb-2 text-xs font-medium uppercase tracking-widest text-blue-500">
               Contact Form
             </p>
-
             <h2 className="text-2xl font-semibold tracking-tight">
               Send a Message
             </h2>
-
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               Prefer email? Tell me a little about your project, question, or
               idea and I&apos;ll get back to you as soon as possible.
             </p>
           </div>
+
+          {/* ── Contextual banner — only shown when ?from= is present ── */}
+          {context && (
+            <div className="flex items-center gap-2.5 rounded-xl border border-blue-500/20 bg-blue-500/6 px-4 py-3">
+              <Tag className="size-3.5 shrink-0 text-blue-400" />
+              <p className="text-sm text-blue-400">
+                Enquiring about{" "}
+                <span className="font-medium text-blue-300">
+                  {context.label}
+                </span>
+              </p>
+            </div>
+          )}
 
           {/* Name */}
           <div className="space-y-3">
@@ -117,26 +142,13 @@ export default function ContactPage() {
               Name
               <span className="ml-1 text-red-500">*</span>
             </label>
-
             <Input
               placeholder="Your name"
               value={form.name}
               onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  name: e.target.value,
-                }))
+                setForm((prev) => ({ ...prev, name: e.target.value }))
               }
-              className="
-          h-11
-          rounded-xl
-          border-border/50
-          bg-background/50
-          text-base
-          focus-visible:ring-1
-          focus-visible:ring-blue-500
-          focus-visible:ring-offset-0
-        "
+              className="h-11 rounded-xl border-border/50 bg-background/50 text-base focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
               required
             />
           </div>
@@ -147,27 +159,14 @@ export default function ContactPage() {
               Email
               <span className="ml-1 text-red-500">*</span>
             </label>
-
             <Input
               type="email"
               placeholder="you@example.com"
               value={form.email}
               onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  email: e.target.value,
-                }))
+                setForm((prev) => ({ ...prev, email: e.target.value }))
               }
-              className="
-          h-11
-          rounded-xl
-          border-border/50
-          bg-background/50
-          text-base
-          focus-visible:ring-1
-          focus-visible:ring-blue-500
-          focus-visible:ring-offset-0
-        "
+              className="h-11 rounded-xl border-border/50 bg-background/50 text-base focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
               required
             />
           </div>
@@ -178,26 +177,13 @@ export default function ContactPage() {
               Company
               <span className="ml-1 text-muted-foreground">(optional)</span>
             </label>
-
             <Input
               placeholder="Company name"
               value={form.company}
               onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  company: e.target.value,
-                }))
+                setForm((prev) => ({ ...prev, company: e.target.value }))
               }
-              className="
-          h-11
-          rounded-xl
-          border-border/50
-          bg-background/50
-          text-base
-          focus-visible:ring-1
-          focus-visible:ring-blue-500
-          focus-visible:ring-offset-0
-        "
+              className="h-11 rounded-xl border-border/50 bg-background/50 text-base focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
             />
           </div>
 
@@ -207,27 +193,17 @@ export default function ContactPage() {
               What would you like to discuss?
               <span className="ml-1 text-red-500">*</span>
             </label>
-
             <Textarea
               rows={6}
-              placeholder="Tell me about your project, idea, challenge, or question..."
+              placeholder={
+                context?.placeholder ??
+                "Tell me about your project, idea, challenge, or question..."
+              }
               value={form.message}
               onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  message: e.target.value,
-                }))
+                setForm((prev) => ({ ...prev, message: e.target.value }))
               }
-              className="
-          resize-none
-          rounded-xl
-          border-border/50
-          bg-background/50
-          text-base
-          focus-visible:ring-1
-          focus-visible:ring-blue-500
-          focus-visible:ring-offset-0
-        "
+              className="resize-none rounded-xl border-border/50 bg-background/50 text-base focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
               required
             />
           </div>
@@ -260,6 +236,7 @@ export default function ContactPage() {
           <p className="text-center text-xs text-muted-foreground">
             Usually replies within 24 hours.
           </p>
+
           {/* Success */}
           {success && (
             <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-sm text-green-500">
@@ -270,5 +247,14 @@ export default function ContactPage() {
         </form>
       </div>
     </section>
+  );
+}
+
+// ── Page export — Suspense required for useSearchParams ───
+export default function ContactPage() {
+  return (
+    <Suspense fallback={null}>
+      <ContactForm />
+    </Suspense>
   );
 }
