@@ -226,13 +226,13 @@ export default function ShowroomClient({ showroom }: Props) {
                 <CalendarDays className="size-3.5" />
                 Book a call
               </a>
-              <Link
+              {/* <Link
                 href="/get-quote"
                 className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-border/60 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-secondary/50"
               >
                 Get a quote
                 <ArrowRight className="size-3.5" />
-              </Link>
+              </Link> */}
             </div>
             <div className="mt-3 flex flex-col gap-1.5">
               {["No commitment", "Free discovery call"].map((t) => (
