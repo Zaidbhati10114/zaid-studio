@@ -306,29 +306,76 @@ export default function ShowroomClient({ showroom }: Props) {
                 className={cn(
                   "relative overflow-hidden transition-all duration-300",
                   device === "mobile"
-                    ? "h-[700px] w-[390px] rounded-[40px] border-[6px] border-foreground/15 shadow-2xl"
+                    ? "h-[700px] w-[390px] rounded-[40px] border-[6px] border-foreground/15 shadow-2xl shadow-black/20"
                     : "h-full w-full",
                 )}
               >
-                {/* Loading overlay */}
-                {iframeLoading && (
-                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-background/90">
-                    <div className="size-7 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                    <p className="text-xs text-muted-foreground">
-                      Loading {current?.label ?? "design"}...
-                    </p>
-                  </div>
-                )}
-
                 {current?.url ? (
-                  <iframe
-                    key={`iframe-${activeDesign}-${iframeKey}`}
-                    src={current.url}
-                    className="h-full w-full border-0"
-                    onLoad={() => setIframeLoading(false)}
-                    title={current.label}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                  />
+                  <>
+                    {/* Notch */}
+                    {device === "mobile" && (
+                      <div className="absolute left-1/2 top-2 z-20 flex -translate-x-1/2 items-center gap-1.5">
+                        <div className="h-2.5 w-2.5 rounded-full bg-foreground/20" />
+                        <div className="h-2.5 w-[72px] rounded-full bg-foreground/15" />
+                      </div>
+                    )}
+
+                    {iframeLoading && (
+                      <div className="absolute inset-0 z-10 bg-background p-6">
+                        <div className="flex h-full flex-col gap-4">
+                          <div className="flex items-center justify-between">
+                            <div className="h-5 w-32 animate-pulse rounded-lg bg-secondary/60" />
+                            <div className="flex gap-2">
+                              <div className="h-5 w-16 animate-pulse rounded-lg bg-secondary/60" />
+                              <div className="h-5 w-16 animate-pulse rounded-lg bg-secondary/60" />
+                              <div className="h-5 w-16 animate-pulse rounded-lg bg-secondary/60" />
+                            </div>
+                          </div>
+                          <div className="mt-4 flex flex-col gap-3">
+                            <div className="h-8 w-2/3 animate-pulse rounded-xl bg-secondary/60" />
+                            <div className="h-4 w-full animate-pulse rounded-lg bg-secondary/40" />
+                            <div className="h-4 w-4/5 animate-pulse rounded-lg bg-secondary/40" />
+                            <div className="mt-2 flex gap-2">
+                              <div className="h-9 w-28 animate-pulse rounded-xl bg-secondary/60" />
+                              <div className="h-9 w-24 animate-pulse rounded-xl bg-secondary/40" />
+                            </div>
+                          </div>
+                          <div className="mt-4 grid grid-cols-3 gap-3">
+                            {[1, 2, 3].map((i) => (
+                              <div
+                                key={i}
+                                className="h-24 animate-pulse rounded-2xl bg-secondary/40"
+                              />
+                            ))}
+                          </div>
+                          <div className="mt-auto flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                            <div className="size-3.5 animate-spin rounded-full border border-blue-500 border-t-transparent" />
+                            Loading {current?.label ?? "design"}...
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <iframe
+                      key={`iframe-${activeDesign}-${iframeKey}`}
+                      src={current.url}
+                      className={cn(
+                        "border-0 transition-opacity duration-300",
+                        iframeLoading ? "opacity-0" : "opacity-100",
+                        device === "mobile"
+                          ? "h-full w-full pt-6 pb-4" // padding for notch + home bar
+                          : "h-full w-full",
+                      )}
+                      onLoad={() => setIframeLoading(false)}
+                      title={current.label}
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    />
+
+                    {/* Home indicator */}
+                    {device === "mobile" && (
+                      <div className="absolute bottom-2 left-1/2 z-20 h-1 w-24 -translate-x-1/2 rounded-full bg-foreground/20" />
+                    )}
+                  </>
                 ) : (
                   <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
                     <Monitor className="size-10 text-muted-foreground/30" />
