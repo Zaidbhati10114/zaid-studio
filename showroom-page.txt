@@ -1,0 +1,322 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Monitor,
+  Smartphone,
+  ExternalLink,
+  CalendarDays,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+
+interface Design {
+  label: string;
+  url: string;
+  thumbnail: string;
+}
+
+interface Showroom {
+  slug: string;
+  client_name: string;
+  business_name: string;
+  message: string;
+  designs: Design[];
+}
+
+interface Props {
+  showroom: Showroom;
+}
+
+const CAL_LINK = "https://cal.com/zaidbhati07/30min";
+
+export default function ShowroomClient({ showroom }: Props) {
+  const [activeDesign, setActiveDesign] = useState(0);
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [iframeLoading, setIframeLoading] = useState(true);
+
+  const current = showroom.designs[activeDesign];
+  const firstName = showroom.client_name.split(" ")[0];
+
+  const calLink =
+    `${CAL_LINK}` +
+    `?name=${encodeURIComponent(showroom.client_name)}` +
+    `&notes=${encodeURIComponent(
+      `Interested in a design for ${showroom.business_name}. Liked: ${current?.label ?? "a design"} from showroom /p/${showroom.slug}/designs`,
+    )}`;
+
+  return (
+    <div className="relative min-h-screen overflow-x-hidden">
+      {/* Background glow */}
+      <div className="pointer-events-none fixed -top-24 left-1/2 -z-10 h-[400px] w-[min(600px,100vw)] -translate-x-1/2 rounded-full bg-blue-600/6 blur-[80px]" />
+
+      <div className="mx-auto max-w-4xl px-4 pb-16 pt-10 sm:px-6 sm:pt-14">
+        {/* Brand */}
+        <div className="mb-8 flex items-center gap-2 text-sm font-semibold">
+          zaid<span className="text-blue-500">studio</span>
+          <span className="size-1.5 rounded-full bg-blue-500" />
+        </div>
+
+        {/* Hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-blue-500">
+            Hey {firstName} 👋
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Here are {showroom.designs.length} designs for{" "}
+            <span className="text-foreground/60">{showroom.business_name}</span>
+          </h1>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+            {showroom.message}
+          </p>
+        </motion.div>
+
+        {/* Design thumbnails */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="mb-5"
+        >
+          <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            Pick a design
+          </p>
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            {showroom.designs.map((design, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  setActiveDesign(i);
+                  setIframeLoading(true);
+                }}
+                className={cn(
+                  "overflow-hidden rounded-xl border text-left transition-all",
+                  activeDesign === i
+                    ? "border-blue-500/50 ring-2 ring-blue-500/20"
+                    : "border-border/50 opacity-60 hover:opacity-80",
+                )}
+              >
+                {design.thumbnail ? (
+                  <img
+                    src={design.thumbnail}
+                    alt={design.label}
+                    className="h-16 w-full object-cover sm:h-20"
+                  />
+                ) : (
+                  <div className="flex h-16 w-full items-center justify-center bg-secondary/30 sm:h-20">
+                    <Monitor className="size-5 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="border-t border-border/50 bg-card/30 px-2 py-1.5">
+                  <p className="truncate text-[11px] font-medium">
+                    {design.label}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="mb-3 flex items-center justify-between"
+        >
+          {/* Design tabs */}
+          <div className="flex gap-2">
+            {showroom.designs.map((design, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  setActiveDesign(i);
+                  setIframeLoading(true);
+                }}
+                className={cn(
+                  "rounded-lg border px-3 py-1.5 text-xs font-medium transition-all",
+                  activeDesign === i
+                    ? "border-blue-500/40 bg-blue-500/8 text-blue-400"
+                    : "border-border/50 text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {design.label.split("·")[0].trim()}
+              </button>
+            ))}
+          </div>
+
+          {/* Device toggle */}
+          <div className="flex overflow-hidden rounded-lg border border-border/50">
+            <button
+              onClick={() => setDevice("desktop")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors",
+                device === "desktop"
+                  ? "bg-blue-500/10 text-blue-400"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Monitor className="size-3.5" />
+              <span className="hidden sm:inline">Desktop</span>
+            </button>
+            <button
+              onClick={() => setDevice("mobile")}
+              className={cn(
+                "flex items-center gap-1.5 border-l border-border/50 px-3 py-1.5 text-xs transition-colors",
+                device === "mobile"
+                  ? "bg-blue-500/10 text-blue-400"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Smartphone className="size-3.5" />
+              <span className="hidden sm:inline">Mobile</span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Preview frame */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="mb-5 overflow-hidden rounded-2xl border border-border/50 bg-secondary/10"
+        >
+          {/* Browser chrome */}
+          <div className="flex items-center gap-2 border-b border-border/50 bg-card/30 px-4 py-2.5">
+            <div className="flex gap-1.5">
+              <span className="size-2.5 rounded-full bg-border" />
+              <span className="size-2.5 rounded-full bg-border" />
+              <span className="size-2.5 rounded-full bg-border" />
+            </div>
+            <div className="flex flex-1 items-center gap-2 rounded-md border border-border/40 bg-background/50 px-3 py-1">
+              <span className="truncate font-mono text-[11px] text-muted-foreground">
+                {current?.url || "https://your-design.vercel.app"}
+              </span>
+            </div>
+            {current?.url && (
+              <a
+                href={current.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ExternalLink className="size-3.5" />
+              </a>
+            )}
+          </div>
+
+          {/* Iframe container */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${activeDesign}-${device}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className={cn(
+                "flex items-start justify-center transition-all",
+                device === "mobile" ? "min-h-[600px] py-6" : "min-h-[480px]",
+              )}
+            >
+              {current?.url ? (
+                <div
+                  className={cn(
+                    "relative overflow-hidden transition-all duration-300",
+                    device === "mobile"
+                      ? "h-[580px] w-[320px] rounded-[28px] border-4 border-foreground/10 shadow-xl"
+                      : "h-[480px] w-full",
+                  )}
+                >
+                  {iframeLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="size-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                        <p className="text-xs text-muted-foreground">
+                          Loading design...
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <iframe
+                    src={current.url}
+                    className="h-full w-full border-0"
+                    onLoad={() => setIframeLoading(false)}
+                    title={current.label}
+                    sandbox="allow-scripts allow-same-origin allow-forms"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-[480px] w-full flex-col items-center justify-center gap-3 text-center">
+                  <Monitor className="size-8 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">
+                    No URL added for this design
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+
+        {/* CTA strip */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.25 }}
+          className="rounded-2xl border border-border/50 bg-card/20 p-5"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium">Like what you see?</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Book a quick call and we'll go over the design, timeline, and
+                pricing for {showroom.business_name}.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+              <a
+                href={calLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              >
+                <CalendarDays className="size-4" />
+                Book a call
+              </a>
+              <Link
+                href={`/get-quote`}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/60 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-secondary/50"
+              >
+                Get a quote
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-border/30 pt-4">
+            {[
+              "No commitment required",
+              "Free discovery call",
+              "Slots limited this week",
+            ].map((t) => (
+              <div
+                key={t}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground"
+              >
+                <CheckCircle2 className="size-3 text-emerald-500" />
+                {t}
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

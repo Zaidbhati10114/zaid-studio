@@ -1,7 +1,14 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, LogOut, Sun, Moon, Menu } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Sun,
+  Moon,
+  Menu,
+  Presentation,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -14,7 +21,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const navItems = [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }];
+const navItems = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/showrooms", label: "Showrooms", icon: Presentation }, // ← add this
+];
 
 export default function AdminDashboardLayout({
   children,
