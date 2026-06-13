@@ -12,6 +12,7 @@ import { quoteSchema, type QuoteFormValues } from "@/lib/quote-schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import DevQuoteFiller from "@/app/components/DevQuoteFiller";
+import { AnalyticsEvents, track } from "@/lib/posthog";
 
 const projectTypes = [
   { value: "Website", label: "Website", icon: "🌐" },
@@ -99,11 +100,29 @@ export default function GetQuotePage({
     error,
   } = useGenerateQuote({
     onSuccess: ({ quoteId }) => {
+      const values = getValues();
+
+      track(AnalyticsEvents.PROPOSAL_GENERATED, {
+        projectType: values.projectType,
+        stage: values.stage,
+        budget: values.budget || "not_specified",
+        timeline: values.timeline,
+      });
+
       setSubmitted(true);
       router.push(`/quotes/${quoteId}`);
     },
-  });
 
+    onError: (error) => {
+      const values = getValues();
+
+      track(AnalyticsEvents.PROPOSAL_GENERATION_FAILED, {
+        status: error.status,
+        projectType: values.projectType,
+        stage: values.stage,
+      });
+    },
+  });
   useEffect(() => {
     if (isPending || submitted) {
       formRef.current?.scrollIntoView({
@@ -158,6 +177,9 @@ export default function GetQuotePage({
     if (!valid) return;
 
     if (step < steps.length - 1) {
+      track(AnalyticsEvents.PROPOSAL_STARTED, {
+        source: "get_quote",
+      });
       setStep((s) => s + 1);
     } else {
       window.scrollTo({

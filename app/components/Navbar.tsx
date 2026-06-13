@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { Sun, Moon, Menu, X } from "lucide-react";
 import { useState, useEffect, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
+import { track, AnalyticsEvents } from "@/lib/posthog";
 
 const links = [
   { href: "/", label: "Home" },
@@ -85,6 +86,12 @@ export default function Navbar() {
             )}
           </button>
           <Link
+            onClick={() => {
+              track(AnalyticsEvents.HOMEPAGE_START_A_PROJECT_CLICKED, {
+                action: "start_project",
+                location: "homepage_navbar",
+              });
+            }}
             href="/get-quote"
             className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >

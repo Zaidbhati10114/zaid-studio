@@ -6,6 +6,7 @@ import "./globals.css";
 import { QueryProvider } from "./providers/QueryProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
+import { PostHogProvider } from "./post-hog-provider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://zaid-studio.vercel.app"),
@@ -99,7 +100,9 @@ export default function RootLayout({
           <SpeedInsights />
           <Analytics />
 
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <PostHogProvider>{children}</PostHogProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
