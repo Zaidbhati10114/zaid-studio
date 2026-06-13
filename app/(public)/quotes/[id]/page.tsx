@@ -2,7 +2,6 @@ import * as Sentry from "@sentry/nextjs";
 import { supabase } from "@/lib/supabase";
 import QuotePageClient from "@/app/components/QuotePageClient";
 import Link from "next/link";
-
 export const revalidate = 600;
 
 export default async function QuotePage({

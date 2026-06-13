@@ -4,6 +4,8 @@ import * as Sentry from "@sentry/nextjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { quoteKeys, type GeneratedQuote } from "@/hooks/useQuote";
 import QuoteClient from "./QuoteClient";
+import { useEffect } from "react";
+import { AnalyticsEvents, track } from "@/lib/posthog";
 
 interface Props {
   id: string;
@@ -44,6 +46,13 @@ export default function QuotePageClient({ id, fallbackQuote }: Props) {
 
   // Use normalized cache if available, otherwise fall straight to DB data
   const quote = cached ? normalizeQuote(cached, fallbackQuote) : fallbackQuote;
+
+  useEffect(() => {
+    track(AnalyticsEvents.PROPOSAL_VIEWED, {
+      complexity: quote.complexity,
+      projectType: quote.project_type,
+    });
+  }, []);
 
   return (
     <Sentry.ErrorBoundary

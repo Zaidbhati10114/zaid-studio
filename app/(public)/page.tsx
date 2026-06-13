@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { track, AnalyticsEvents } from "@/lib/posthog";
 import {
   ArrowRight,
   Check,
@@ -153,8 +154,8 @@ const steps = [
   },
   {
     num: "02",
-    title: "Design",
-    desc: "I wireframe the product and share a clickable prototype before writing a single line of code.",
+    title: "Design Showroom",
+    desc: "Before any code is written, you get a private link with 3 real designs built for your business. Browse on desktop and mobile, pick what feels right.",
   },
   {
     num: "03",
@@ -226,6 +227,15 @@ export default function HomePage() {
                   className="mt-7 flex w-full flex-col gap-3 sm:flex-row sm:items-center"
                 >
                   <Link
+                    onClick={() => {
+                      track(
+                        AnalyticsEvents.GET_YOUR_PROPOSAL_IN_30_SEC_CLICKED,
+                        {
+                          action: "get_proposal_30_sec",
+                          location: "homepage_hero",
+                        },
+                      );
+                    }}
                     href="/get-quote"
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-all hover:bg-blue-700 hover:shadow-[0_0_24px_rgba(37,99,235,0.4)] sm:py-2.5"
                   >
@@ -345,10 +355,10 @@ export default function HomePage() {
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        "Landing Pages",
-                        "Web Apps",
-                        "SaaS Products",
-                        "AI Tools",
+                        "Business Websites",
+                        "Online Stores",
+                        "Custom Dashboards",
+                        "AI Powered Tools",
                       ].map((item) => (
                         <span
                           key={item}
@@ -387,6 +397,12 @@ export default function HomePage() {
                     <a
                       href={CAL_LINK}
                       target="_blank"
+                      onClick={() => {
+                        track(AnalyticsEvents.BOOK_30_MIN_CALL, {
+                          action: "book_30_min_call",
+                          location: "homepage",
+                        });
+                      }}
                       rel="noopener noreferrer"
                       className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/25 bg-blue-500/8 px-4 py-2.5 text-sm font-medium text-blue-600 transition-all hover:bg-blue-500/12 dark:text-blue-400"
                     >
@@ -543,10 +559,10 @@ export default function HomePage() {
                   {s.features.map((f) => (
                     <li
                       key={f.text}
-                      className="flex items-start gap-2 text-sm text-muted-foreground"
+                      className="flex items-start gap-2 text-sm text-muted-foreground/200"
                     >
                       <Check className="mt-0.5 size-3.5 shrink-0 text-blue-500" />
-                      <span className="flex items-center gap-1.5">
+                      <span className="flex items-center gap-1.5 ">
                         {f.text}
                         {f.revisions && (
                           <Tooltip>
@@ -579,7 +595,7 @@ export default function HomePage() {
                 </ul>
 
                 {/* Caveat — sits above CTA, muted */}
-                <p className="mt-5 flex items-center gap-1.5 border-t border-border/30 pt-4 text-[11px] text-muted-foreground/50">
+                <p className="mt-5 flex items-center gap-1.5 border-t border-border/40 pt-4 text-[11px] text-muted-foreground/101">
                   <span className="text-muted-foreground/30">*</span>
                   {s.caveat}
                 </p>
@@ -628,6 +644,69 @@ export default function HomePage() {
         </section>
 
         <Separator className="opacity-30" />
+
+        {/* ── SHOWROOM FEATURE ─────────────────────────────────── */}
+        <section className="mx-auto w-full max-w-6xl px-6 py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="relative overflow-hidden rounded-2xl border border-blue-500/15 bg-gradient-to-br from-blue-500/4 to-indigo-500/4 px-8 py-10"
+          >
+            {/* Background glow */}
+            <div className="pointer-events-none absolute -top-10 right-0 h-48 w-64 rounded-full bg-blue-600/8 blur-[60px]" />
+
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="max-w-xl">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/8 px-3 py-1 text-xs text-blue-400">
+                  <span className="size-1.5 rounded-full bg-blue-400" />
+                  Design Showroom
+                </div>
+                <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
+                  See your site before it's built
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  Before we write a single line of code, you get a private link
+                  with real designs built specifically for your business. Browse
+                  them on desktop and mobile, pick what feels right — then we
+                  build.
+                </p>
+                <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  {[
+                    "2 real designs, built for your business",
+                    "Browse on desktop and mobile",
+                    "No commitment to see them",
+                  ].map((t) => (
+                    <div
+                      key={t}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground"
+                    >
+                      <Check className="size-3 shrink-0 text-blue-500" />
+                      {t}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <a
+                href={CAL_LINK}
+                target="_blank"
+                onClick={() => {
+                  track(AnalyticsEvents.DISCUSS_YOUR_PROJECT_CLICKED, {
+                    action: "discuss_your_project",
+                    location: "DESIGN_SHOWROOM",
+                  });
+                }}
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-blue-500/25 bg-blue-500/8 px-5 py-3 text-sm font-medium text-blue-400 transition-all hover:bg-blue-500/15"
+              >
+                <CalendarDays className="size-4" />
+                Discuss your project
+              </a>
+            </div>
+          </motion.div>
+        </section>
 
         {/* ── WORK ─────────────────────────────────────────────── */}
         <section className="mx-auto w-full max-w-6xl px-6 py-24">
@@ -702,6 +781,8 @@ export default function HomePage() {
 
         <Separator className="opacity-30" />
 
+        <Separator className="opacity-30" />
+
         {/* ── PROCESS ──────────────────────────────────────────── */}
         <section className="mx-auto w-full max-w-6xl px-6 py-24">
           <motion.div
@@ -761,7 +842,7 @@ export default function HomePage() {
           >
             <div className="pointer-events-none absolute -top-12 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full bg-blue-600/12 blur-[60px]" />
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              Ready to build something?
+              Let&apos;s turn your idea into a website.
             </h2>
             <p className="mt-3 text-muted-foreground">
               Get an AI-generated quote instantly, or book a free 30-min call to
@@ -770,6 +851,12 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href="/get-quote"
+                onClick={() => {
+                  track(AnalyticsEvents.HOMEPAGE_START_A_PROJECT_CLICKED, {
+                    action: "start_project",
+                    location: "lets_turn_your_idea_into_a_website_card",
+                  });
+                }}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 hover:shadow-[0_0_20px_rgba(37,99,235,0.35)] transition-all sm:w-auto"
               >
                 Get a Free Quote <ArrowRight className="size-3.5" />
@@ -777,6 +864,13 @@ export default function HomePage() {
               <a
                 href={CAL_LINK}
                 target="_blank"
+                onClick={() => {
+                  track(AnalyticsEvents.BOOK_30_MIN_CALL, {
+                    action: "discuss_your_project",
+                    location:
+                      "lets_turn_your_idea_into_a_website_card-book_free__call",
+                  });
+                }}
                 rel="noopener noreferrer"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/8 px-6 py-3 text-sm font-medium text-blue-400 hover:bg-blue-500/12 transition-all sm:w-auto"
               >
