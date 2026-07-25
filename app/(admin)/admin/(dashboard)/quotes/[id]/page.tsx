@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   Calendar,
   Briefcase,
+  Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,10 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
   lost: {
     label: "Lost",
     classes: "bg-red-500/10 text-red-400 border-red-500/20",
+  },
+  proposal_sent: {
+    label: "Proposal Sent",
+    classes: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   },
 };
 
@@ -81,6 +86,21 @@ export default function QuoteDetailPage({
     setStatusUpdating(false);
   };
 
+  const handleSendProposal = async () => {
+    if (!quote) return;
+    const res = await fetch("/api/admin/send-project-proposal", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        quoteId: quote.id,
+      }),
+    });
+
+    console.log(await res.json());
+  };
+
   const handleDelete = async () => {
     if (!confirmDelete) {
       setConfirmDelete(true);
@@ -103,6 +123,7 @@ export default function QuoteDetailPage({
           subject: `Re: Your Project Quote — ${quote.project_type}`,
           message: emailMessage,
           clientName: quote.name,
+          quoteId: id,
         }),
       });
       if (res.ok) {
@@ -164,6 +185,7 @@ export default function QuoteDetailPage({
             <option value="contacted">Contacted</option>
             <option value="won">Won</option>
             <option value="lost">Lost</option>
+            <option value="proposal_sent">Proposal Sent</option>
           </select>
         </div>
       </motion.div>
@@ -409,6 +431,19 @@ export default function QuoteDetailPage({
         >
           <Mail className="size-3.5" />
           {emailSent ? "Email Sent ✓" : "Email Client"}
+        </button>
+
+        <button
+          onClick={() => handleSendProposal()}
+          className={cn(
+            "inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors sm:w-auto",
+            emailSent
+              ? "border-emerald-500/20 bg-emerald-500/8 text-emerald-400"
+              : "border-border/60 hover:bg-secondary/50",
+          )}
+        >
+          <Send className="size-3.5" />
+          {emailSent ? "Proposal Sent ✓" : "Send Proposal"}
         </button>
 
         <button

@@ -27,6 +27,7 @@ export interface SendProposalParams {
     client_responsibilities?: string[];
     risks?: QuoteRisk[];
     next_steps?: string[];
+    quoteId: string;
 }
 
 export async function sendProposal(params: SendProposalParams): Promise<void> {

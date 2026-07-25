@@ -73,16 +73,23 @@ function isRateLimitError(err: unknown): boolean {
     return status === 429 || status === 503;
 }
 
-function parseJSON(text: string, providerName: ProviderName): GeneratedQuote {
+function parseJSON<T>(
+    text: string,
+    providerName: ProviderName
+): T {
     const cleaned = text.replace(/```json|```/g, "").trim();
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error(`${providerName}: No JSON found in response`);
-    return JSON.parse(match[0]) as GeneratedQuote;
-}
 
+    const match = cleaned.match(/\{[\s\S]*\}/);
+
+    if (!match) {
+        throw new Error(`${providerName}: No JSON found`);
+    }
+
+    return JSON.parse(match[0]) as T;
+}
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export async function callAIWithFallback(prompt: string): Promise<GeneratedQuote> {
+export async function callAIWithFallback<T>(prompt: string): Promise<T> {
     const startIndex = currentIndex % providers.length;
     let lastErr: unknown;
 
@@ -91,18 +98,27 @@ export async function callAIWithFallback(prompt: string): Promise<GeneratedQuote
         const t0 = Date.now();
 
         try {
-            console.log(JSON.stringify({ tag: "QG", stage: "ai_attempt", provider: provider.name }));
+            //console.log(JSON.stringify({ tag: "QG", stage: "ai_attempt", provider: provider.name }));
 
             const text = await provider.call(prompt);
-            const parsed = parseJSON(text, provider.name);
+            const parsed = parseJSON<T>(text, provider.name);
 
-            console.log(JSON.stringify({
-                tag: "QG",
-                stage: "ai_ok",
-                provider: provider.name,
-                ms: Date.now() - t0,
-                complexity: parsed.complexity,
-            }));
+            // console.log("===== AI PARSED =====");
+            // console.log({
+            //     phasesType: typeof parsed.phases,
+            //     risksType: typeof parsed.risks,
+            //     phasesIsArray: Array.isArray(parsed.phases),
+            //     risksIsArray: Array.isArray(parsed.risks),
+            //     phases: parsed.phases,
+            //     risks: parsed.risks,
+            // });
+
+            // console.log(JSON.stringify({
+            //     tag: "QG",
+            //     stage: "ai_ok",
+            //     provider: provider.name,
+            //     ms: Date.now() - t0,
+            // }));
 
             // Advance round-robin so next request starts on the next provider
             currentIndex = (startIndex + i + 1) % providers.length;
@@ -113,15 +129,15 @@ export async function callAIWithFallback(prompt: string): Promise<GeneratedQuote
             lastErr = err;
             const isRateLimit = isRateLimitError(err);
 
-            console.error(JSON.stringify({
-                tag: "QG_ERR",
-                stage: "ai_provider_fail",
-                provider: provider.name,
-                ms: Date.now() - t0,
-                status: (err as any)?.status,
-                message: err instanceof Error ? err.message.slice(0, 150) : String(err),
-                willTryNext: isRateLimit && i < providers.length - 1,
-            }));
+            // console.error(JSON.stringify({
+            //     tag: "QG_ERR",
+            //     stage: "ai_provider_fail",
+            //     provider: provider.name,
+            //     ms: Date.now() - t0,
+            //     status: (err as any)?.status,
+            //     message: err instanceof Error ? err.message.slice(0, 150) : String(err),
+            //     willTryNext: isRateLimit && i < providers.length - 1,
+            // }));
 
             // Only fall through to next provider on rate limit errors
             // Parse errors or auth errors should not try the next provider
