@@ -1,0 +1,49 @@
+name: Supabase Heartbeat
+
+on:
+  schedule:
+    # Runs every 5 days at 00:00 UTC
+    - cron: "0 0 */5 * *"
+
+  workflow_dispatch:
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Heartbeat Endpoint
+        run: |
+          curl --fail --show-error --silent \
+            -X POST "${{ secrets.HEARTBEAT_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.INTERNAL_API_SECRET }}" \
+            -H "Content-Type: application/json"
+
+      - name: Send Failure Email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+
+          username: ${{ secrets.SMTP_USER }}
+          password: ${{ secrets.SMTP_PASS }}
+
+          subject: "❌ Supabase Heartbeat Failed"
+
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: Project Hub Monitor
+
+          body: |
+            The scheduled Supabase heartbeat has failed.
+
+            Repository:
+            ${{ github.repository }}
+
+            Workflow:
+            ${{ github.workflow }}
+
+            Run:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Please check the workflow logs for more details.
