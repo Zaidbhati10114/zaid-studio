@@ -2,8 +2,8 @@ name: Supabase Heartbeat
 
 on:
   schedule:
-    # Runs every 5 days at 00:00 UTC
-    - cron: "0 0 */5 * *"
+     # Every 2 days at 00:00 UTC
+    - cron: "0 0 */2 * *"
 
   workflow_dispatch:
 
