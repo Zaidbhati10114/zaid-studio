@@ -7,7 +7,11 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ProposalCard } from "../components/layout/shared/ProposalCard";
 
-export function TimelineCard() {
+interface TimelineCardProps {
+  readOnly?: boolean;
+}
+
+export function TimelineCard({ readOnly = false }: TimelineCardProps) {
   const form = useFormContext<ProposalForm>();
   return (
     <ProposalCard
@@ -26,6 +30,7 @@ export function TimelineCard() {
               id="timeline"
               placeholder="6–8 weeks"
               aria-invalid={fieldState.invalid}
+              readOnly={readOnly}
             />
 
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

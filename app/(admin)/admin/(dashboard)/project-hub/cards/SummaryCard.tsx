@@ -14,7 +14,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { ProposalCard } from "../components/layout/shared/ProposalCard";
 
-export function SummaryCard() {
+interface SummaryCardProps {
+  readOnly?: boolean;
+}
+
+export function SummaryCard({ readOnly = false }: SummaryCardProps) {
   const form = useFormContext<ProposalForm>();
 
   return (
@@ -31,6 +35,7 @@ export function SummaryCard() {
 
             <Textarea
               {...field}
+              readOnly={readOnly}
               id="summary"
               rows={7}
               aria-invalid={fieldState.invalid}

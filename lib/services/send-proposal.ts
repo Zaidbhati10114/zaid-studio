@@ -1,11 +1,21 @@
 import { supabaseAdmin } from "../supabase-server";
+
 import { createProposalEmailTemplate } from "./email/proposal-email-template";
 import { sendProposalEmail } from "./email/send-proposal";
 import { createProposalPdf } from "./pdf/create-proposal-pdf";
 
+import {
+    createProposalRevision,
+    getLatestProposalVersion,
+} from "@/lib/repositories/proposal-versions";
+
+import { dbToProposalDraft } from "@/lib/mappers/proposal-draft";
+import { isProposalEqual } from "@/lib/proposals/is-proposal-equal";
+
 export async function sendProposal(
     quoteId: string
 ) {
+    // Quote
     const { data: quote, error: quoteError } =
         await supabaseAdmin
             .from("quotes")
@@ -17,67 +27,103 @@ export async function sendProposal(
         throw new Error("Quote not found.");
     }
 
-
-
-
-
+    // Current Draft
     const {
-        data: proposal,
-        error: proposalError,
+        data: draft,
+        error: draftError,
     } = await supabaseAdmin
         .from("proposal_drafts")
         .select("*")
         .eq("quote_id", quoteId)
         .single();
 
-    if (proposalError || !proposal) {
+    if (draftError || !draft) {
         throw new Error("Proposal draft not found.");
     }
 
-    const pdfBuffer = await createProposalPdf({
-        clientName: quote.name,
+    // Latest Version
+    let version =
+        await getLatestProposalVersion(quoteId);
 
-        projectType: quote.project_type,
+    // Create a new version only if the draft changed
+    if (
+        !version ||
+        !isProposalEqual(
+            dbToProposalDraft(draft),
+            dbToProposalDraft(version)
+        )
+    ) {
+        version = await createProposalRevision({
+            quoteId,
+        });
+    }
 
-        quoteUrl: "",
+    const proposal =
+        dbToProposalDraft(version);
 
-        summary: proposal.summary,
+    // PDF
+    const pdfBuffer =
+        await createProposalPdf({
+            clientName: quote.name,
 
-        estimatedTimeline: proposal.estimated_timeline,
+            projectType: quote.project_type,
 
-        estimatedCost: proposal.estimated_cost,
+            quoteUrl: "",
 
-        complexity: proposal.complexity,
+            summary: proposal.summary,
 
-        deliverables: proposal.deliverables,
+            estimatedTimeline:
+                proposal.estimatedTimeline,
 
-        techStack: proposal.tech_stack,
+            estimatedCost:
+                proposal.estimatedCost,
 
-        phases: proposal.phases,
+            complexity: proposal.complexity,
 
-        clientResponsibilities: proposal.client_responsibilities,
+            deliverables:
+                proposal.deliverables,
 
-        risks: proposal.risks,
+            techStack: proposal.techStack,
 
-        nextSteps: proposal.next_steps,
-    });
+            phases: proposal.phases,
 
+            clientResponsibilities:
+                proposal.clientResponsibilities,
 
-    const html = createProposalEmailTemplate({
-        clientName: quote.name,
-        projectType: quote.project_type,
-        quoteUrl: "", // we'll replace this later with the real public proposal URL
-        estimatedTimeline: proposal.estimated_timeline,
-        estimatedCost: proposal.estimated_cost,
-    });
+            risks: proposal.risks,
+
+            nextSteps:
+                proposal.nextSteps,
+        });
+
+    const html =
+        createProposalEmailTemplate({
+            clientName: quote.name,
+            projectType: quote.project_type,
+            quoteUrl: "",
+            estimatedTimeline:
+                proposal.estimatedTimeline,
+            estimatedCost:
+                proposal.estimatedCost,
+        });
 
     await sendProposalEmail({
         to: quote.email,
-        subject: `Your Project Proposal — ${quote.project_type ?? "Project"}`,
+        subject: `Your Project Proposal — ${quote.project_type ?? "Project"
+            }`,
         html,
         pdfBuffer,
         filename: `proposal-${quote.name
             .toLowerCase()
             .replace(/\s+/g, "-")}.pdf`,
     });
+
+    // Mark version as sent
+    await supabaseAdmin
+        .from("proposal_versions")
+        .update({
+            status: "sent",
+            sent_at: new Date().toISOString(),
+        })
+        .eq("id", version.id);
 }

@@ -10,7 +10,13 @@ import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 
 import { Textarea } from "@/components/ui/textarea";
 
-export function CommercialTermsCard() {
+interface CommercialTermsCardProps {
+  readOnly?: boolean;
+}
+
+export function CommercialTermsCard({
+  readOnly = false,
+}: CommercialTermsCardProps) {
   const { control } = useFormContext<ProposalForm>();
 
   return (
@@ -29,6 +35,7 @@ export function CommercialTermsCard() {
               <Textarea
                 {...field}
                 rows={4}
+                readOnly={readOnly}
                 placeholder="Describe the post-launch support included..."
               />
 

@@ -11,6 +11,23 @@ export interface GenerateProposalRequest {
     adminNotes?: string;
 }
 
+export interface ResendProposalVersionRequest {
+    versionId: string;
+}
+
+export interface ResendProposalVersionResponse {
+    success: true;
+    versionNumber: number;
+}
+
+export interface ProposalVersionDetail extends ProposalDraft {
+    id: string;
+    versionNumber: number;
+    status: "saved" | "sent" | "failed";
+    baseVersionId: string | null;
+
+}
+
 export interface SendProposalRequest {
     quoteId: string;
 }
@@ -65,6 +82,29 @@ async function sendProposal(
     return data;
 }
 
+async function resendProposalVersion(
+    body: ResendProposalVersionRequest
+): Promise<ResendProposalVersionResponse> {
+    const res = await fetch("/api/admin/proposals/resend", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new ProposalApiError(
+            res.status,
+            data.error ?? "Failed to resend proposal"
+        );
+    }
+
+    return data;
+}
+
 
 async function generateProposal(
     body: GenerateProposalRequest
@@ -110,6 +150,92 @@ async function saveProposal(
         throw new ProposalApiError(
             res.status,
             data.error ?? "Failed to save proposal",
+            data.details
+        );
+    }
+
+    return data;
+}
+
+async function createRevision(
+    body: CreateRevisionRequest
+): Promise<CreateRevisionResponse> {
+
+    const res = await fetch("/api/admin/proposals/revision", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new ProposalApiError(
+            res.status,
+            data.error ?? "Failed to create revision",
+            data.details
+        );
+    }
+
+    return data;
+}
+
+export function useCreateRevision(
+    options?: {
+        onSuccess?: (data: CreateRevisionResponse) => void;
+        onError?: (error: ProposalApiError) => void;
+    }
+) {
+    return useMutation<
+        CreateRevisionResponse,
+        ProposalApiError,
+        CreateRevisionRequest
+    >({
+        mutationFn: createRevision,
+
+        onSuccess: options?.onSuccess,
+
+        onError: (error) => {
+            if (error.status >= 500) {
+                Sentry.captureException(error, {
+                    tags: {
+                        layer: "proposal_revision",
+                    },
+                });
+            }
+
+            options?.onError?.(error);
+        },
+
+        retry: (failureCount, error) => {
+            if (
+                error instanceof ProposalApiError &&
+                error.status < 500
+            ) {
+                return false;
+            }
+
+            return failureCount < 2;
+        },
+    });
+}
+
+async function fetchProposalVersion(
+    versionId: string
+): Promise<ProposalVersionDetail> {
+
+    const res = await fetch(
+        `/api/admin/proposals/version/${versionId}`
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new ProposalApiError(
+            res.status,
+            data.error,
             data.details
         );
     }
@@ -263,10 +389,70 @@ export function useSaveProposal(
 
 }
 
+export function useResendProposalVersion(
+    options?: {
+        onSuccess?: (data: ResendProposalVersionResponse) => void;
+        onError?: (error: ProposalApiError) => void;
+    }
+) {
+    return useMutation<
+        ResendProposalVersionResponse,
+        ProposalApiError,
+        ResendProposalVersionRequest
+    >({
+        mutationFn: resendProposalVersion,
+
+        onSuccess: options?.onSuccess,
+
+        onError: (error) => {
+            if (error.status >= 500) {
+                Sentry.captureException(error, {
+                    tags: {
+                        layer: "proposal_resend",
+                    },
+                });
+            }
+
+            options?.onError?.(error);
+        },
+
+        retry: (failureCount, error) => {
+            if (error instanceof ProposalApiError && error.status < 500) {
+                return false;
+            }
+
+            return failureCount < 2;
+        },
+    });
+}
+
+
+export interface ProposalVersion {
+    id: string;
+    versionNumber: number;
+    status: "saved" | "sent" | "failed";
+    baseVersionId: string | null;
+    createdAt: string;
+    sentAt: string | null;
+}
+
+export interface CreateRevisionRequest {
+    quoteId: string;
+}
+
+export interface CreateRevisionResponse {
+    success: true;
+    version: {
+        id: string;
+        versionNumber: number;
+        status: "saved";
+    };
+}
 
 export interface ProjectHubResponse {
     quote: Quote;
     proposalDraft: ProposalDraft | null;
+    versions: ProposalVersion[];
 }
 
 
@@ -300,7 +486,22 @@ export const proposalKeys = {
 
     projectHub: (quoteId: string) =>
         ["proposals", "project-hub", quoteId] as const,
+
+    version: (versionId: string) =>
+        ["proposals", "version", versionId] as const,
 };
+
+export function useProposalVersion(
+    versionId: string | null
+) {
+    return useQuery({
+        queryKey: proposalKeys.version(versionId ?? ""),
+        queryFn: () => fetchProposalVersion(versionId!),
+        enabled: !!versionId,
+        staleTime: Infinity,
+        placeholderData: (previousData) => previousData,
+    });
+}
 
 
 export function useProjectHub(
@@ -313,6 +514,8 @@ export function useProjectHub(
         queryFn: () => fetchProjectHub(quoteId!),
 
         enabled: !!quoteId,
+
+
 
         staleTime: Infinity,
 

@@ -14,18 +14,25 @@ import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 interface RiskEditorProps {
   index: number;
   onRemove: () => void;
+  readOnly?: boolean;
 }
 
-export function RiskEditor({ index, onRemove }: RiskEditorProps) {
+export function RiskEditor({
+  index,
+  onRemove,
+  readOnly = false,
+}: RiskEditorProps) {
   const { control } = useFormContext<ProposalForm>();
 
   return (
     <SectionCard
       title={`Risk ${index + 1}`}
       actions={
-        <Button type="button" variant="ghost" size="icon" onClick={onRemove}>
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        !readOnly && (
+          <Button type="button" variant="ghost" size="icon" onClick={onRemove}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )
       }
     >
       <Controller
@@ -35,7 +42,11 @@ export function RiskEditor({ index, onRemove }: RiskEditorProps) {
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel>Risk</FieldLabel>
 
-            <Input {...field} placeholder="Describe the project risk..." />
+            <Input
+              readOnly={readOnly}
+              {...field}
+              placeholder="Describe the project risk..."
+            />
 
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
@@ -53,6 +64,7 @@ export function RiskEditor({ index, onRemove }: RiskEditorProps) {
               {...field}
               rows={4}
               placeholder="Describe how this risk will be mitigated..."
+              readOnly={readOnly}
             />
 
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

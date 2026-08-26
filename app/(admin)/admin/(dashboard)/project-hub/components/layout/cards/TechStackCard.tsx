@@ -8,7 +8,11 @@ import { EditableList } from "../shared/EditableList";
 import { useFormContext } from "react-hook-form";
 import type { ProposalForm } from "@/lib/validation/proposal-schema";
 
-export function TechStackCard() {
+interface TechStackCardProps {
+  readOnly?: boolean;
+}
+
+export function TechStackCard({ readOnly = false }: TechStackCardProps) {
   const { watch, setValue } = useFormContext<ProposalForm>();
 
   const techStack = watch("techStack") ?? [];
@@ -50,11 +54,13 @@ export function TechStackCard() {
         emptyMessage="No technologies added yet."
         onAdd={add}
         onRemove={remove}
+        readOnly={readOnly}
         renderItem={(value, index) => (
           <Input
             value={value}
             placeholder="e.g. Next.js"
             onChange={(e) => update(index, e.target.value)}
+            readOnly={readOnly}
           />
         )}
       />

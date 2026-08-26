@@ -16,6 +16,7 @@ interface EditableListProps {
   onAdd: () => void;
 
   onRemove: (index: number) => void;
+  readOnly?: boolean;
 
   emptyMessage?: string;
 }
@@ -26,6 +27,7 @@ export function EditableList({
   addLabel,
   onAdd,
   onRemove,
+  readOnly = false,
   emptyMessage = "No items yet.",
 }: EditableListProps) {
   const values = items ?? [];
@@ -39,28 +41,32 @@ export function EditableList({
             <div key={index} className="flex items-start gap-3">
               <div className="flex-1">{renderItem(item, index)}</div>
 
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => onRemove(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {!readOnly && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemove(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        onClick={onAdd}
-      >
-        <Plus className="mr-2 h-4 w-4" />
-        {addLabel}
-      </Button>
+      {!readOnly && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={onAdd}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          {addLabel}
+        </Button>
+      )}
     </div>
   );
 }

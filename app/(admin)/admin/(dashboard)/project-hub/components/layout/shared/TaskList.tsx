@@ -10,9 +10,10 @@ import type { ProposalForm } from "@/lib/validation/proposal-schema";
 
 interface TaskListProps {
   phaseIndex: number;
+  readOnly?: boolean;
 }
 
-export function TaskList({ phaseIndex }: TaskListProps) {
+export function TaskList({ phaseIndex, readOnly = false }: TaskListProps) {
   const { watch, setValue } = useFormContext<ProposalForm>();
 
   const tasks = watch(`phases.${phaseIndex}.tasks`) ?? [];
@@ -50,11 +51,13 @@ export function TaskList({ phaseIndex }: TaskListProps) {
       emptyMessage="No tasks added yet."
       onAdd={add}
       onRemove={remove}
+      readOnly={readOnly}
       renderItem={(value, index) => (
         <Input
           value={value}
           placeholder="Describe this task..."
           onChange={(e) => update(index, e.target.value)}
+          readOnly={readOnly}
         />
       )}
     />

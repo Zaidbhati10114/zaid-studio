@@ -12,7 +12,11 @@ import { RiskEditor } from "../shared/RiskEditor";
 
 import { Button } from "@/components/ui/button";
 
-export function RisksCard() {
+interface RisksCardProps {
+  readOnly?: boolean;
+}
+
+export function RisksCard({ readOnly = false }: RisksCardProps) {
   const { control } = useFormContext<ProposalForm>();
 
   const { fields, append, remove } = useFieldArray({
@@ -30,6 +34,7 @@ export function RisksCard() {
           <RiskEditor
             key={field.id}
             index={index}
+            readOnly={readOnly}
             onRemove={() => remove(index)}
           />
         ))}
@@ -39,6 +44,7 @@ export function RisksCard() {
           variant="outline"
           className="w-full"
           onClick={() => append(createEmptyRisk())}
+          disabled={readOnly}
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Risk

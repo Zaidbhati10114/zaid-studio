@@ -14,7 +14,11 @@ import {
 import { InputGroupTextarea } from "@/components/ui/input-group";
 
 import { ProposalCard } from "../../project-hub/components/layout/shared/ProposalCard";
-export function DeliverablesCard() {
+interface DeliverablesCardProps {
+  readOnly?: boolean;
+}
+
+export function DeliverablesCard({ readOnly = false }: DeliverablesCardProps) {
   const form = useFormContext<ProposalForm>();
   return (
     <ProposalCard title="Deliverables" description="One deliverable per line.">
@@ -38,6 +42,7 @@ export function DeliverablesCard() {
                 )
               }
               aria-invalid={fieldState.invalid}
+              readOnly={readOnly}
               placeholder="Responsive website&#10;Contact form&#10;Admin dashboard"
             />
 

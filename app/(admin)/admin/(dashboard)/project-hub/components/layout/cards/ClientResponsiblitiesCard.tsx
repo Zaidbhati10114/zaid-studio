@@ -9,7 +9,13 @@ import { ProposalCard } from "../shared/ProposalCard";
 
 import type { ProposalForm } from "@/lib/validation/proposal-schema";
 
-export function ClientResponsibilitiesCard() {
+interface ClientResponsibilitiesCardProps {
+  readOnly?: boolean;
+}
+
+export function ClientResponsibilitiesCard({
+  readOnly = false,
+}: ClientResponsibilitiesCardProps) {
   const { watch, setValue } = useFormContext<ProposalForm>();
 
   const responsibilities = watch("clientResponsibilities") ?? [];
@@ -47,6 +53,7 @@ export function ClientResponsibilitiesCard() {
     >
       <EditableList
         items={responsibilities}
+        readOnly={readOnly}
         addLabel="Add Responsibility"
         emptyMessage="No responsibilities added yet."
         onAdd={add}
@@ -54,6 +61,7 @@ export function ClientResponsibilitiesCard() {
         renderItem={(value, index) => (
           <Input
             value={value}
+            readOnly={readOnly}
             placeholder="e.g. Provide logo files"
             onChange={(e) => update(index, e.target.value)}
           />

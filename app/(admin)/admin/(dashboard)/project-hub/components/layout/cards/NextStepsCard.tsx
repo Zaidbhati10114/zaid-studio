@@ -9,7 +9,11 @@ import { EditableList } from "../shared/EditableList";
 
 import type { ProposalForm } from "@/lib/validation/proposal-schema";
 
-export function NextStepsCard() {
+interface NextStepsCardProps {
+  readOnly?: boolean;
+}
+
+export function NextStepsCard({ readOnly = false }: NextStepsCardProps) {
   const { watch, setValue } = useFormContext<ProposalForm>();
 
   const nextSteps = watch("nextSteps") ?? [];
@@ -51,11 +55,13 @@ export function NextStepsCard() {
         emptyMessage="No next steps added yet."
         onAdd={add}
         onRemove={remove}
+        readOnly={readOnly}
         renderItem={(value, index) => (
           <Input
             value={value}
             placeholder="e.g. Schedule project kickoff meeting"
             onChange={(e) => update(index, e.target.value)}
+            readOnly={readOnly}
           />
         )}
       />

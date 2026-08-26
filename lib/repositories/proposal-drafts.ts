@@ -71,3 +71,19 @@ export async function upsertProposalDraft({
     };
 }
 
+export async function getProposalDraft(
+    quoteId: string
+) {
+    const { data, error } = await supabaseAdmin
+        .from("proposal_drafts")
+        .select("*")
+        .eq("quote_id", quoteId)
+        .maybeSingle();
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
+}
+

@@ -9,7 +9,11 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ProposalCard } from "../../project-hub/components/layout/shared/ProposalCard";
 
-export function CostCard() {
+interface CostCardProps {
+  readOnly?: boolean;
+}
+
+export function CostCard({ readOnly = false }: CostCardProps) {
   const form = useFormContext<ProposalForm>();
 
   return (
@@ -29,6 +33,7 @@ export function CostCard() {
               id="cost"
               placeholder="₹50,000 - ₹70,000"
               aria-invalid={fieldState.invalid}
+              readOnly={readOnly}
             />
 
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

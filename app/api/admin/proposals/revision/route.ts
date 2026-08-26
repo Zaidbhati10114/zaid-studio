@@ -1,12 +1,15 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import { upsertProposalDraft } from "@/lib/repositories/proposal-drafts";
-import type { SaveProposalDraftRequest } from "@/lib/types";
+import { createProposalRevision } from "@/lib/repositories/proposal-versions";
+
+interface CreateRevisionRequest {
+    quoteId: string;
+}
 
 export async function POST(req: NextRequest) {
     try {
-        const body: SaveProposalDraftRequest = await req.json();
+        const body: CreateRevisionRequest = await req.json();
 
         if (!body.quoteId) {
             return NextResponse.json(
@@ -15,37 +18,31 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        if (!body.proposal) {
-            return NextResponse.json(
-                { error: "proposal is required" },
-                { status: 400 }
-            );
-        }
-
-        const result = await upsertProposalDraft({
+        const version = await createProposalRevision({
             quoteId: body.quoteId,
-            proposal: body.proposal,
         });
 
         return NextResponse.json({
             success: true,
-            draftId: result.draftId,
+            version: {
+                id: version.id,
+                versionNumber: version.version_number,
+                status: version.status,
+            },
         });
 
     } catch (error) {
-        console.error("[proposal-save]", error);
+        console.error("[proposal-revision]", error);
 
         return NextResponse.json(
             {
-                error: "Failed to save proposal",
+                error: "Failed to create revision",
                 details:
                     error instanceof Error
                         ? error.message
                         : "Unknown error",
             },
-            {
-                status: 500,
-            }
+            { status: 500 }
         );
     }
 }

@@ -12,7 +12,11 @@ import { PhaseEditor } from "../shared/PhaseEditor";
 
 import { Button } from "@/components/ui/button";
 
-export function PhasesCard() {
+interface PhasesCardProps {
+  readOnly?: boolean;
+}
+
+export function PhasesCard({ readOnly = false }: PhasesCardProps) {
   const { control } = useFormContext<ProposalForm>();
 
   const { fields, append, remove } = useFieldArray({
@@ -30,6 +34,7 @@ export function PhasesCard() {
           <PhaseEditor
             key={field.id}
             index={index}
+            readOnly={readOnly}
             onRemove={() => remove(index)}
           />
         ))}
