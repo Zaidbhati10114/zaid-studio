@@ -50,8 +50,16 @@ export function OverviewCards({
 
       <Metric
         title="Average Latency"
-        value={`${Math.round(overview.averageLatency)}ms`}
-        subtitle={`P95 ${Math.round(overview.p95Latency)}ms`}
+        value={
+          overview.averageLatency !== null
+            ? `${Math.round(overview.averageLatency)}ms`
+            : "—"
+        }
+        subtitle={
+          overview.p95Latency !== null
+            ? `P95 ${Math.round(overview.p95Latency)}ms`
+            : "P95 —"
+        }
         icon={<Timer className="size-5" />}
       />
 
