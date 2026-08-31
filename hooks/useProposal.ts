@@ -549,3 +549,99 @@ export function useProjectHub(
     });
 
 }
+
+export interface AdminCreateProposalRequest {
+    name: string;
+    email: string;
+    projectType: string;
+    stage: string;
+    budget: string;
+    timeline: string;
+    description: string;
+    adminNotes?: string;
+}
+
+export interface AdminCreateProposalResponse {
+    success: true;
+    quoteId: string;
+    draftId: string;
+    created: boolean;
+}
+
+async function createAdminProposal(
+    body: AdminCreateProposalRequest
+): Promise<AdminCreateProposalResponse> {
+    const res = await fetch(
+        "/api/admin/proposals/create",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+        }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new ProposalApiError(
+            res.status,
+            data.error ??
+            "Failed to create proposal",
+            data.details
+        );
+    }
+
+    return data;
+}
+
+export function useCreateAdminProposal(
+    options?: {
+        onSuccess?: (
+            data: AdminCreateProposalResponse
+        ) => void;
+
+        onError?: (
+            error: ProposalApiError
+        ) => void;
+    }
+) {
+    return useMutation<
+        AdminCreateProposalResponse,
+        ProposalApiError,
+        AdminCreateProposalRequest
+    >({
+        mutationFn: createAdminProposal,
+
+        onSuccess:
+            options?.onSuccess,
+
+        onError: (error) => {
+            if (error.status >= 500) {
+                Sentry.captureException(
+                    error,
+                    {
+                        tags: {
+                            layer:
+                                "admin_proposal_create",
+                        },
+                    }
+                );
+            }
+
+            options?.onError?.(error);
+        },
+
+        retry: (failureCount, error) => {
+            if (
+                error instanceof ProposalApiError &&
+                error.status < 500
+            ) {
+                return false;
+            }
+
+            return failureCount < 2;
+        },
+    });
+}
