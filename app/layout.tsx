@@ -7,6 +7,7 @@ import { QueryProvider } from "./providers/QueryProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { PostHogProvider } from "./post-hog-provider";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://zaid-studio.vercel.app"),
@@ -101,7 +102,10 @@ export default function RootLayout({
           <Analytics />
 
           <QueryProvider>
-            <PostHogProvider>{children}</PostHogProvider>
+            {/* <PostHogProvider> */}
+            <Toaster />
+            {children}
+            {/* </PostHogProvider> */}
           </QueryProvider>
         </ThemeProvider>
       </body>

@@ -1,6 +1,7 @@
 // components/ProposalPDF.tsx
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-
+import type { ProposalDraft } from "@/lib/ai/proposal-schema";
+import type { Quote } from "@/lib/models/quote";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface QuotePhase {
@@ -27,6 +28,14 @@ export interface ProposalPDFProps {
   risks?: QuoteRisk[];
   next_steps?: string[];
   description?: string;
+  quoteUrl: string;
+}
+
+export interface ProposalPDFPropss {
+  proposal: ProposalDraft;
+
+  quote: Quote;
+
   quoteUrl: string;
 }
 

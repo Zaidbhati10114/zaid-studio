@@ -230,7 +230,9 @@ export default function AdminDashboard() {
                       <p className="mb-1 uppercase tracking-widest text-[10px] text-muted-foreground">
                         Project
                       </p>
-                      <p className="text-sm text-foreground">{q.project_type}</p>
+                      <p className="text-sm text-foreground">
+                        {q.project_type}
+                      </p>
                     </div>
                     <div className="rounded-xl border border-border/40 bg-background/40 p-3">
                       <p className="mb-1 uppercase tracking-widest text-[10px] text-muted-foreground">
@@ -290,96 +292,110 @@ export default function AdminDashboard() {
             </div>
 
             <div className="hidden overflow-x-auto md:block">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/40 bg-secondary/20">
-                  {["Client", "Project Type", "Date", "Status", "Actions"].map(
-                    (h) => (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/40 bg-secondary/20">
+                    {[
+                      "Client",
+                      "Project Type",
+                      "Date",
+                      "Status",
+                      "Actions",
+                    ].map((h) => (
                       <th
                         key={h}
                         className="px-5 py-3 text-left text-[11px] font-medium uppercase tracking-widest text-muted-foreground"
                       >
                         {h}
                       </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/30">
-                {quotes.map((q) => (
-                  <tr
-                    key={q.id}
-                    className="group cursor-pointer hover:bg-secondary/20 transition-colors"
-                    onClick={() => router.push(`/admin/quotes/${q.id}`)}
-                  >
-                    <td className="px-5 py-4">
-                      <p className="font-medium">{q.name}</p>
-                      <p className="text-xs text-muted-foreground">{q.email}</p>
-                    </td>
-                    <td className="px-5 py-4 text-muted-foreground">
-                      {q.project_type}
-                    </td>
-                    <td className="px-5 py-4 text-muted-foreground">
-                      {new Date(q.created_at).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td className="px-5 py-4">
-                      <select
-                        value={q.status}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) =>
-                          handleStatusChange(q.id, e.target.value)
-                        }
-                        disabled={statusUpdating === q.id}
-                        className={cn(
-                          "rounded-full border px-2.5 py-0.5 text-[11px] font-medium outline-none cursor-pointer",
-                          statusColors[q.status],
-                        )}
-                      >
-                        {Object.entries(statusLabels).map(([val, label]) => (
-                          <option key={val} value={val}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div
-                        className="flex items-center gap-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          onClick={() => router.push(`/admin/quotes/${q.id}`)}
-                          className="flex items-center gap-1 rounded-lg border border-border/50 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <Eye className="size-3" /> View
-                        </button>
-                        <button
-                          onClick={() => handleDelete(q.id)}
-                          disabled={deletingId === q.id}
-                          className={cn(
-                            "flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs transition-colors",
-                            confirmDeleteId === q.id
-                              ? "border-red-500/30 bg-red-500/8 text-red-400"
-                              : "border-border/50 text-muted-foreground hover:text-red-400",
-                          )}
-                        >
-                          {deletingId === q.id ? (
-                            <Loader2 className="size-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="size-3" />
-                          )}
-                          {confirmDeleteId === q.id ? "Sure?" : "Delete"}
-                        </button>
-                      </div>
-                    </td>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border/30">
+                  {quotes.map((q) => (
+                    <tr
+                      key={q.id}
+                      className="group cursor-pointer hover:bg-secondary/20 transition-colors"
+                      onClick={() => router.push(`/admin/quotes/${q.id}`)}
+                    >
+                      <td className="px-5 py-4">
+                        <p className="font-medium">{q.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {q.email}
+                        </p>
+                      </td>
+                      <td className="px-5 py-4 text-muted-foreground">
+                        {q.project_type}
+                      </td>
+                      <td className="px-5 py-4 text-muted-foreground">
+                        {new Date(q.created_at).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </td>
+                      <td className="px-5 py-4">
+                        <select
+                          value={q.status}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) =>
+                            handleStatusChange(q.id, e.target.value)
+                          }
+                          disabled={statusUpdating === q.id}
+                          className={cn(
+                            "rounded-full border px-2.5 py-0.5 text-[11px] font-medium outline-none cursor-pointer",
+                            statusColors[q.status],
+                          )}
+                        >
+                          {Object.entries(statusLabels).map(([val, label]) => (
+                            <option key={val} value={val}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-5 py-4">
+                        <div
+                          className="flex items-center gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() => router.push(`/admin/quotes/${q.id}`)}
+                            className="flex items-center gap-1 rounded-lg border border-border/50 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <Eye className="size-3" /> View
+                          </button>
+                          <button
+                            onClick={() =>
+                              router.push(`/admin/project-hub/${q.id}`)
+                            }
+                            className="flex items-center gap-1 rounded-lg border border-border/50 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <Eye className="size-3" /> Hub
+                          </button>
+                          <button
+                            onClick={() => handleDelete(q.id)}
+                            disabled={deletingId === q.id}
+                            className={cn(
+                              "flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs transition-colors",
+                              confirmDeleteId === q.id
+                                ? "border-red-500/30 bg-red-500/8 text-red-400"
+                                : "border-border/50 text-muted-foreground hover:text-red-400",
+                            )}
+                          >
+                            {deletingId === q.id ? (
+                              <Loader2 className="size-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="size-3" />
+                            )}
+                            {confirmDeleteId === q.id ? "Sure?" : "Delete"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </>
         )}

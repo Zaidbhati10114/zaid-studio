@@ -169,6 +169,7 @@ ${quoteUrl}
     if (!emailInput.trim()) return;
     triggerSendEmail({
       toEmail: emailInput,
+      quoteId: id,
       clientName: quote.name,
       projectType: quote.project_type ?? "Project",
       quoteUrl,

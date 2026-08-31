@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
             summary,
             estimated_timeline,
             estimated_cost,
+            quoteId,
             complexity,
             deliverables,
             tech_stack,
@@ -41,9 +42,18 @@ export async function POST(req: NextRequest) {
             next_steps,
         } = body;
 
+
+
         if (!toEmail || !clientName || !quoteUrl) {
             return NextResponse.json(
                 { error: "Missing required fields: toEmail, clientName, quoteUrl" },
+                { status: 400 }
+            );
+        }
+
+        if (!quoteId) {
+            return NextResponse.json(
+                { error: "Missing quoteId" },
                 { status: 400 }
             );
         }
