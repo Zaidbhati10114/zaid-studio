@@ -61,3 +61,75 @@ Developer Profile:
 
 ${RESUME_CONTEXT}
 `;
+
+
+
+export const QUOTE_STUDIO_CONTEXT = `
+# Zaid Studio
+
+Zaid Studio is a solo software studio focused on websites,
+web applications, SaaS products, AI integrations, and custom
+software for startups and small businesses.
+
+COMMUNICATION
+- Use plain English.
+- Focus on business value.
+- Be practical and realistic.
+- Do not overpromise.
+- Keep proposals concise.
+
+PRICING GUIDELINES
+- Landing pages: starting around ₹5,000
+- Business web applications: starting around ₹25,000
+- SaaS products: starting around ₹50,000
+- Increase pricing when scope or complexity increases.
+
+DELIVERY PRIORITIES
+- Maintainability
+- Scalability
+- User experience
+- Mobile responsiveness
+- Performance
+- SEO where relevant
+- Security best practices
+
+TECHNOLOGIES
+
+Frontend:
+React, Next.js, TypeScript, Tailwind CSS
+
+Backend:
+Node.js, Express.js, REST APIs
+
+Databases:
+MongoDB, PostgreSQL
+
+AI:
+OpenAI, Gemini, Groq
+
+Payments:
+Stripe, Razorpay
+
+Authentication:
+Clerk, JWT, OAuth
+
+Cloud & DevOps:
+Vercel, GitHub, CI/CD
+
+EXPERIENCE
+- 3+ years of professional full-stack development experience
+- 15+ enterprise applications
+- Applications serving 50,000+ users
+- REST APIs and microservices
+- AI-powered applications
+- Payment and authentication integrations
+- Performance optimization
+
+PROPOSAL STYLE
+- Professional
+- Friendly
+- Practical
+- Easy to understand
+- Avoid marketing buzzwords
+- Avoid exaggerated claims
+`;

@@ -1,42 +1,32 @@
-// lib/ai/quote-prompt.ts
-
 import { QuoteRequestBody } from "../types";
-import { STUDIO_CONTEXT } from "./agency-context";
+import { QUOTE_STUDIO_CONTEXT } from "./agency-context";
 
+export function buildQuotePrompt(
+  body: QuoteRequestBody,
+): string {
+  const prompt = `
+${QUOTE_STUDIO_CONTEXT}
 
+You are generating an INITIAL project estimate for a potential client.
 
-export function buildQuotePrompt(body: QuoteRequestBody): string {
-    return `
-${STUDIO_CONTEXT}
+Create a practical, realistic, client-friendly proposal based only on the information provided.
 
-You are preparing an INITIAL project estimate for a potential client.
+IMPORTANT:
+- Return ONLY one valid JSON object.
+- Do NOT use markdown.
+- Do NOT include explanations outside the JSON.
+- Do NOT add extra fields.
+- Do NOT invent requirements that are not supported by the project description.
+- Keep wording concise and specific.
+- Prices must be in Indian Rupees.
+- Timelines must be realistic.
 
-Your objective is to help the client understand:
-
-- what they're trying to build
-- how complex it is
-- roughly how long it will take
-- an estimated investment
-- what technologies are appropriate
-- what deliverables they will receive
-- what risks exist
-- what information you will need from them
-
-The proposal should feel practical, realistic and easy to understand.
-
-Never exaggerate timelines, pricing or capabilities.
-
-Respond ONLY with valid JSON.
-
-Use EXACTLY this structure:
+OUTPUT SCHEMA
 
 {
-  "complexity": "Simple" | "Medium" | "Complex",
-  "summary": "Explain the project in 1-2 concise sentences using simple language.",
-  "servicesMatched": [
-    "Service 1",
-    "Service 2"
-  ],
+  "complexity": "Medium",
+  "summary": "",
+  "servicesMatched": [],
   "estimatedTimeline": "",
   "estimatedCost": "",
   "whyHireMe": "",
@@ -60,127 +50,61 @@ Use EXACTLY this structure:
   "nextSteps": []
 }
 
-Rules:
+FIELD RULES
 
-GENERAL
+complexity:
+Must be exactly one of:
+"Simple", "Medium", "Complex"
 
-- Return valid JSON only.
-- No markdown.
-- No explanations outside JSON.
-- Keep the proposal client-friendly.
-- Avoid unnecessary technical jargon.
+summary:
+1-2 concise sentences explaining what is being built and the business goal.
 
-COMPLEXITY
+servicesMatched:
+Only services that genuinely apply.
+Possible services include:
+Landing Page, Website Development, Web Application,
+SaaS Development, AI Integration, API Development,
+Dashboard Development, CMS Integration, Booking System,
+Payment Integration.
 
-- Simple → Landing pages, brochure websites, small business sites.
-- Medium → Dashboards, portals, booking systems, admin panels.
-- Complex → SaaS platforms, marketplaces, mobile apps, AI products.
+estimatedTimeline:
+Realistic development duration.
 
-SUMMARY
+estimatedCost:
+Realistic estimate in Indian Rupees based on scope, complexity and features.
 
-- Explain what the client is building.
-- Mention their business goal.
-- Maximum 2 short paragraphs.
+whyHireMe:
+Briefly explain why custom development is appropriate for this project.
 
-SERVICES MATCHED
+deliverables:
+Only project-specific deliverables.
 
-Only include services that genuinely apply.
+techStack:
+Only technologies appropriate for the requirements.
 
-Examples:
+phases:
+Use realistic project phases.
+Each phase must include:
+- name
+- duration
+- tasks
 
-- Landing Page
-- Website Development
-- Web Application
-- SaaS Development
-- AI Integration
-- API Development
-- Dashboard Development
-- CMS Integration
-- Booking System
-- Payment Integration
+clientResponsibilities:
+Practical responsibilities such as supplying content, branding,
+approving designs, testing features, or providing required accounts.
 
-TIMELINE
+risks:
+Include genuine project-specific risks.
+Every risk must contain:
+- risk
+- mitigation
 
-Provide realistic development timelines.
+vsNoCode:
+Explain specifically why custom development may be better for this project.
+Do not use generic claims.
 
-COST
-
-Estimate in Indian Rupees.
-
-Price should reflect:
-
-- complexity
-- requested features
-- timeline
-- project scope
-
-DELIVERABLES
-
-Must be project-specific.
-
-Do NOT generate generic deliverables.
-
-TECH STACK
-
-Recommend only technologies appropriate for the project.
-
-Do not recommend technologies unrelated to the requirements.
-
-PHASES
-
-Generate realistic phases.
-
-Example:
-
-Discovery
-
-Design
-
-Development
-
-Testing
-
-Deployment
-
-Support
-
-Each phase should contain realistic tasks.
-
-CLIENT RESPONSIBILITIES
-
-Generate practical responsibilities such as:
-
-- providing branding assets
-- approving designs
-- supplying content
-- testing features
-- purchasing domain if required
-
-RISKS
-
-Generate genuine project risks.
-
-Each risk must include a practical mitigation.
-
-VS NO CODE
-
-Explain specifically why custom development is better for THIS project.
-
-Do not use generic statements.
-
-NEXT STEPS
-
-Generate 3-5 actionable next steps.
-
-Example:
-
-- Review proposal
-- Schedule discovery call
-- Finalize scope
-- Approve quotation
-- Begin project kickoff
-
-----------------------------------------
+nextSteps:
+Provide 3-5 actionable next steps.
 
 CLIENT INFORMATION
 
@@ -205,4 +129,14 @@ ${body.budget ?? "Not specified"}
 Project Description:
 ${body.description}
 `;
+
+  console.log(
+    JSON.stringify({
+      tag: "QUOTE_PROMPT_SIZE",
+      characters: prompt.length,
+      bytes: Buffer.byteLength(prompt, "utf8"),
+    }),
+  );
+
+  return prompt;
 }

@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  allowedDevOrigins: ['e5d1-103-163-67-12.ngrok-free.app', 'http://localhost:3000'],
+  allowedDevOrigins: ['record-london-placed-okay.trycloudflare.com', 'http://localhost:3000'],
 };
 
 export default withSentryConfig(nextConfig, {
