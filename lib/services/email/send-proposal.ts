@@ -14,14 +14,10 @@ const transporter = nodemailer.createTransport({
 
 interface SendProposalEmailParams {
     to: string;
-
     subject: string;
-
     html: string;
-
-    pdfBuffer: Buffer;
-
-    filename: string;
+    pdfBuffer?: Buffer;
+    filename?: string;
 }
 
 export async function sendProposalEmail({
