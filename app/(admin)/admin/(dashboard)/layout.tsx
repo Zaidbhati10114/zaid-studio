@@ -10,6 +10,7 @@ import {
   Presentation,
   Plus,
   HeartPlus,
+  Search,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -28,6 +29,7 @@ const navItems = [
   { href: "/admin/showrooms", label: "Showrooms", icon: Presentation }, // ← add this
   { href: "/admin/proposals/new", label: "New Proposal", icon: Plus }, // ← add this
   { href: "/admin/system-health", label: "System Health", icon: HeartPlus }, // ← add this
+  { href: "/admin/quotes/search", label: "Quote Search", icon: Search }, // ← add this
 ];
 
 export default function AdminDashboardLayout({

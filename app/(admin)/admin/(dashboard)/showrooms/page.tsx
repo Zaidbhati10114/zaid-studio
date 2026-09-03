@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+//import { useSearchParams } from "next/navigation";
 import {
   Plus,
   Loader2,
@@ -40,14 +41,17 @@ export default function ShowroomsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  // const searchParams = useSearchParams();
 
-  async function fetchShowrooms() {
-    setLoading(true);
-    const res = await fetch("/api/admin/showrooms");
-    const data = await res.json();
-    setShowrooms(data.showrooms ?? []);
-    setLoading(false);
-  }
+  // const proposalDraftId = searchParams.get("draft");
+
+  // async function fetchShowrooms() {
+  //   setLoading(true);
+  //   const res = await fetch("/api/admin/showrooms");
+  //   const data = await res.json();
+  //   setShowrooms(data.showrooms ?? []);
+  //   setLoading(false);
+  // }
 
   useEffect(() => {
     let cancelled = false;
