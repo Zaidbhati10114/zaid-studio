@@ -1,10 +1,8 @@
 // lib/ai-health/health-check.ts
 
-import {
-    testAIProvider,
-    AIProviderError,
-} from "@/lib/ai-providers";
 
+
+import { AIProviderError, testAIProvider } from "../validation/ai-providers";
 import {
     createAIHealthCheckRun,
     updateAIHealthCheckRun,
