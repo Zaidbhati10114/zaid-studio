@@ -2,9 +2,17 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import Groq from "groq-sdk";
 import { SarvamAIClient } from "sarvamai";
 import { trackAIHealth } from "@/lib/ai-health/tracker";
+import { getActiveModel } from "@/lib/ai/model-registry";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ProviderName = "groq" | "gemini" | "sarvam";
+
+type Task =
+    | "quote_generation"
+    | "proposal_generation"
+    | "fallback_generation"
+    | "fallback_generation_secondary"
+    | "standalone_test";
 
 type AIErrorType =
     | "timeout"
@@ -19,7 +27,11 @@ type AIErrorType =
 interface AIProvider {
     name: ProviderName;
     priority: number;
-    call: (prompt: string) => Promise<string>;
+    call: (
+        prompt: string,
+        modelOverride?: string,
+        task?: Task
+    ) => Promise<string>;
 }
 
 // ─── Errors ───────────────────────────────────────────────────────────────────
@@ -266,15 +278,14 @@ function classifyProviderError(
 export async function testAIProvider(
     providerName: ProviderName,
     prompt: string,
+    modelOverride?: string,
 ): Promise<{
     model: string;
     text: string;
 }> {
-    const provider =
-        providers.find(
-            (item) =>
-                item.name === providerName,
-        );
+    const provider = providers.find(
+        (item) => item.name === providerName,
+    );
 
     if (!provider) {
         throw new Error(
@@ -282,17 +293,22 @@ export async function testAIProvider(
         );
     }
 
-    const text =
-        await withTimeout(
-            provider.call(prompt),
-            provider.name,
-            PROVIDER_TIMEOUT_MS,
-        );
+    const text = await withTimeout(
+        provider.call(prompt, modelOverride),
+        provider.name,
+        PROVIDER_TIMEOUT_MS,
+    );
 
     return {
-        model: getProviderModel(
-            provider.name,
-        ),
+        model:
+            modelOverride ??
+            (await getActiveModel(
+                provider.name === "groq"
+                    ? "quote_generation"
+                    : provider.name === "gemini"
+                        ? "fallback_generation"
+                        : "fallback_generation_secondary",
+            )),
         text,
     };
 }
@@ -347,13 +363,17 @@ const providers: AIProvider[] = [
 
 
 
-        call: async (prompt) => {
+        call: async (prompt, modelOverride, task) => {
 
             try {
+                const activeModel =
+                    modelOverride ??
+                    (await getActiveModel(
+                        task ?? "quote_generation",
+                    ));
                 const result =
                     await groq.chat.completions.create({
-                        model:
-                            "openai/gpt-oss-20b",
+                        model: activeModel,
 
                         messages: [
                             {
@@ -400,12 +420,14 @@ const providers: AIProvider[] = [
         name: "gemini",
         priority: 2,
 
-        call: async (prompt) => {
+        call: async (prompt, modelOverride, task) => {
             try {
+                const activeModel =
+                    modelOverride ??
+                    (await getActiveModel(task ?? "fallback_generation"));
                 const model =
                     gemini.getGenerativeModel({
-                        model:
-                            "gemini-2.5-flash",
+                        model: activeModel,
 
                         generationConfig: {
                             responseMimeType:
@@ -415,7 +437,7 @@ const providers: AIProvider[] = [
                                 0.7,
 
                             maxOutputTokens:
-                                2500,
+                                4096,
                         },
                     });
 
@@ -438,12 +460,16 @@ const providers: AIProvider[] = [
         name: "sarvam",
         priority: 3,
 
-        call: async (prompt) => {
+        call: async (prompt, modelOverride, task) => {
             try {
+                const activeModel =
+                    modelOverride ??
+                    (await getActiveModel(
+                        task ?? "fallback_generation_secondary",
+                    ));
                 const result =
                     await sarvam.chat.completions({
-                        model:
-                            "sarvam-105b",
+                        model: activeModel as any,
 
                         messages: [
                             {
@@ -534,21 +560,6 @@ function parseJSON<T>(
 }
 
 
-function getProviderModel(
-    provider: ProviderName,
-): string {
-    switch (provider) {
-        case "groq":
-            return "openai/gpt-oss-20b";
-
-        case "gemini":
-            return "gemini-2.5-flash";
-
-        case "sarvam":
-            return "sarvam-105b";
-    }
-}
-
 
 
 // ─── Main Export ──────────────────────────────────────────────────────────────
@@ -558,12 +569,16 @@ export async function callAIWithFallback<T>(
     options?: {
         provider?: ProviderName;
         bypassCooldown?: boolean;
+        task?: Task;
     },
 ): Promise<T> {
 
     const generationStartedAt = Date.now();
     const requestCorrelationId =
         crypto.randomUUID();
+
+    const resolvedTask: Task =
+        options?.task ?? "quote_generation";
 
     const availableProviders = options?.provider
         ? providers.filter(
@@ -654,7 +669,7 @@ export async function callAIWithFallback<T>(
 
             const text =
                 await withTimeout(
-                    provider.call(prompt),
+                    provider.call(prompt, undefined, resolvedTask),
                     provider.name,
                     attemptTimeout,
                 );
@@ -684,8 +699,12 @@ export async function callAIWithFallback<T>(
 
             await trackAIHealth({
                 provider: provider.name,
-                model: getProviderModel(
-                    provider.name,
+                model: await getActiveModel(
+                    provider.name === "groq"
+                        ? "quote_generation"
+                        : provider.name === "gemini"
+                            ? "fallback_generation"
+                            : "fallback_generation_secondary",
                 ),
                 status: "success",
                 latencyMs: providerLatencyMs,
@@ -751,8 +770,12 @@ export async function callAIWithFallback<T>(
 
             await trackAIHealth({
                 provider: provider.name,
-                model: getProviderModel(
-                    provider.name,
+                model: await getActiveModel(
+                    provider.name === "groq"
+                        ? "quote_generation"
+                        : provider.name === "gemini"
+                            ? "fallback_generation"
+                            : "fallback_generation_secondary",
                 ),
                 status: "failed",
                 latencyMs: attemptLatencyMs,

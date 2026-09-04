@@ -1,8 +1,9 @@
 export const runtime = "nodejs";
 
+import { callAIWithFallback } from "@/lib/validation/ai-providers";
 import { NextRequest, NextResponse } from "next/server";
 
-import { callAIWithFallback } from "@/lib/ai-providers";
+
 
 const TEST_SECRET = process.env.AI_STRESS_TEST_SECRET;
 

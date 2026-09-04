@@ -1,10 +1,11 @@
 
+import { callAIWithFallback } from "@/lib/validation/ai-providers";
 import dotenv from "dotenv";
 
 dotenv.config({
     path: ".env.local",
 });
-import { callAIWithFallback } from "../lib/ai-providers";
+
 const prompt = `
 Return ONLY valid JSON.
 

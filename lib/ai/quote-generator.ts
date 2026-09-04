@@ -1,5 +1,5 @@
 
-import { callAIWithFallback } from "../ai-providers";
+import { callAIWithFallback } from "../validation/ai-providers";
 import { QuoteRequestBody } from "../types";
 import { buildQuotePrompt } from "./quote-prompt";
 
