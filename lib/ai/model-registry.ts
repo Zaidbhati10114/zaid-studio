@@ -3,6 +3,8 @@ import { supabaseAdmin } from "@/lib/supabase-server";
 type Task =
     | "quote_generation"
     | "proposal_generation"
+    | "lead_inspection"
+    | "outreach_generation"
     | "fallback_generation"
     | "fallback_generation_secondary"
     | "standalone_test";

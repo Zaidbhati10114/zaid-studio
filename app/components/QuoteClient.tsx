@@ -512,6 +512,49 @@ ${quoteUrl}
           </details>
         )}
 
+        {/* Hosting & Domain */}
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.35 }}
+          className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6"
+        >
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
+              <Link2 className="size-5 text-blue-500" />
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-semibold">Hosting & Domain</h3>
+
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  Every website includes a free{" "}
+                  <code className="rounded bg-secondary px-1 py-0.5 text-xs">
+                    yourbusiness.vercel.app
+                  </code>{" "}
+                  subdomain, so your project can go live without any additional
+                  hosting or domain cost.
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-border/50 bg-card/40 p-4">
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  If you&apos;d prefer a custom domain like{" "}
+                  <strong>.com</strong>, <strong>.in</strong>, or{" "}
+                  <strong>.co</strong>, the domain registration cost is separate
+                  from the project price. The domain will be purchased through
+                  your own account so you remain the owner, and I&apos;ll handle
+                  the complete setup, SSL (HTTPS), and connection process for
+                  you.
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* SHARE */}
         <div className="rounded-2xl border border-border/50 bg-card/20 p-5">
           <div className="mb-3 flex items-center gap-2">

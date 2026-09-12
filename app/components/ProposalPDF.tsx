@@ -151,6 +151,27 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
 
+  // ── Hosting & Domain ──
+  hostingCard: {
+    backgroundColor: "#eff6ff",
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+  },
+  hostingTitle: {
+    fontSize: 12,
+    fontFamily: "Helvetica-Bold",
+    color: "#1d4ed8",
+    marginBottom: 8,
+  },
+  hostingText: {
+    fontSize: 10,
+    color: "#374151",
+    lineHeight: 1.6,
+  },
+
   // ── Section ──
   section: {
     backgroundColor: "#f8fafc",
@@ -337,7 +358,6 @@ const styles = StyleSheet.create({
     color: "#2563eb",
   },
 });
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ProposalPDF({
@@ -488,6 +508,24 @@ export function ProposalPDF({
           </View>
         )}
 
+        <View style={styles.hostingCard}>
+          <Text style={styles.hostingTitle}>Hosting & Domain</Text>
+
+          <Text style={styles.hostingText}>
+            Every website includes a free yourbusiness.vercel.app subdomain, so
+            your project can go live without any additional hosting or domain
+            cost.
+          </Text>
+
+          <Text style={[styles.hostingText, { marginTop: 8 }]}>
+            If you&apos;d prefer a custom domain like .com, .in, or .co, the
+            domain registration cost is separate from the project price. The
+            domain should be purchased through your own account so you remain
+            the owner, and Zaid Studio will handle the complete setup, SSL
+            (HTTPS), and connection process for you.
+          </Text>
+        </View>
+
         {/* ── FOOTER ── */}
         <View style={styles.footer}>
           <Text style={styles.footerLeft}>
@@ -495,6 +533,7 @@ export function ProposalPDF({
           </Text>
           <Text style={styles.footerUrl}>{quoteUrl}</Text>
         </View>
+        {/* ── HOSTING & DOMAIN ── */}
       </Page>
     </Document>
   );
