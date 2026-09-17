@@ -19,6 +19,8 @@ import {
   Calendar,
   Briefcase,
   Send,
+  Link,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -463,6 +465,13 @@ export default function QuoteDetailPage({
           )}
           {confirmDelete ? "Confirm Delete?" : "Delete Quote"}
         </button>
+        <a
+          href={`/admin/invoices/new?quote=${quote.id}`}
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent"
+        >
+          <Receipt className="h-4 w-4" />
+          Generate Invoice
+        </a>
       </motion.div>
     </div>
   );
