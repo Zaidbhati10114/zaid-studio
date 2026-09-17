@@ -469,7 +469,7 @@ export default function HomePage() {
                   </div>
 
                   <a
-                    href="https://ashabi-clinic.vercel.app"
+                    href="https://ashabiclinic.com"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex shrink-0 items-center gap-2 self-start rounded-lg border border-emerald-500/20 bg-emerald-500/6 px-4 py-2 text-sm font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10 dark:text-emerald-400 sm:self-auto"

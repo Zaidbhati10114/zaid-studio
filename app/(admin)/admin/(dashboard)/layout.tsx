@@ -13,6 +13,7 @@ import {
   Search,
   Pipette,
   BookSearch,
+  FileText,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -34,6 +35,7 @@ const navItems = [
   { href: "/admin/quotes/search", label: "Quote Search", icon: Search }, // ← add this
   { href: "/admin/model-lab", label: "Model Lab", icon: Pipette }, // ← add this
   { href: "/admin/lead-lab", label: "Client Search", icon: BookSearch }, // ← add this
+  { href: "/admin/invoices/new", label: "Invoice", icon: FileText }, // ← add this
 ];
 
 export default function AdminDashboardLayout({
