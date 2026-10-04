@@ -278,6 +278,7 @@ export function BusinessDetailDrawer({ business }: Props) {
                 <p className="text-xs text-muted-foreground">Best Contact</p>
 
                 <p className="font-medium">{inspection.bestContactMethod}</p>
+                <p className="font-medium">{business.phone}</p>
               </div>
 
               <div className="rounded-lg border p-3">
