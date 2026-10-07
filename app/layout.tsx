@@ -102,10 +102,10 @@ export default function RootLayout({
           <Analytics />
 
           <QueryProvider>
-            {/* <PostHogProvider> */}
-            <Toaster />
-            {children}
-            {/* </PostHogProvider> */}
+            <PostHogProvider>
+              <Toaster />
+              {children}
+            </PostHogProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>
