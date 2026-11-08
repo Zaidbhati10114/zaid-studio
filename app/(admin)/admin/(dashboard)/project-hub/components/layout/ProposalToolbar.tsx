@@ -1,6 +1,7 @@
 "use client";
 
-import { Sparkles, Save, SendHorizontal, GitBranch } from "lucide-react";
+import { useState } from "react";
+import { Sparkles, Save, SendHorizontal, GitBranch, ClipboardCheck } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -64,6 +65,24 @@ export function ProposalToolbar({
   onEditVersion,
 }: ProposalToolbarProps) {
   const router = useRouter();
+  const [loadingOnboarding, setLoadingOnboarding] = useState(false);
+
+  async function handleOpenOnboarding() {
+    setLoadingOnboarding(true);
+    try {
+      const res = await fetch(`/api/admin/onboarding/quote/${quoteId}`);
+      const data = await res.json();
+      if (data.form) {
+        router.push(`/admin/onboarding/${data.form.id}`);
+      } else {
+        router.push("/admin/onboarding");
+      }
+    } catch {
+      router.push("/admin/onboarding");
+    } finally {
+      setLoadingOnboarding(false);
+    }
+  }
 
   return (
     <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
@@ -153,6 +172,19 @@ export function ProposalToolbar({
               </Button>
             </>
           )}
+
+          <Button
+            variant="outline"
+            onClick={handleOpenOnboarding}
+            disabled={isBusy || loadingOnboarding}
+          >
+            {loadingOnboarding ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <ClipboardCheck className="mr-2 h-4 w-4 text-blue-500" />
+            )}
+            Onboarding Form
+          </Button>
 
           <Button
             onClick={() => router.push(`/admin/project-hub/${quoteId}/preview`)}

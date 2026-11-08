@@ -15,6 +15,7 @@ import {
   BookSearch,
   FileText,
   ArrowUpRight,
+  ClipboardCheck,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -30,6 +31,7 @@ import {
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/onboarding", label: "Onboarding Forms", icon: ClipboardCheck },
   { href: "/admin/showrooms", label: "Showrooms", icon: Presentation }, // ← add this
   { href: "/admin/proposals/new", label: "New Proposal", icon: Plus }, // ← add this
   { href: "/admin/system-health", label: "System Health", icon: HeartPlus }, // ← add this

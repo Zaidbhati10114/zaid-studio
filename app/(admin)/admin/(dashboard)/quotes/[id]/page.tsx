@@ -21,6 +21,7 @@ import {
   Send,
   Link,
   Receipt,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -472,6 +473,25 @@ export default function QuoteDetailPage({
           <Receipt className="h-4 w-4" />
           Generate Invoice
         </a>
+        <button
+          onClick={async () => {
+            try {
+              const res = await fetch(`/api/admin/onboarding/quote/${quote.id}`);
+              const data = await res.json();
+              if (data.form) {
+                router.push(`/admin/onboarding/${data.form.id}`);
+              } else {
+                router.push("/admin/onboarding");
+              }
+            } catch {
+              router.push("/admin/onboarding");
+            }
+          }}
+          className="inline-flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-400 px-4 py-2 text-sm font-medium transition hover:bg-blue-500/20"
+        >
+          <ClipboardCheck className="h-4 w-4" />
+          Onboarding Form
+        </button>
       </motion.div>
     </div>
   );
